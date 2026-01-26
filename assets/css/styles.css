@@ -3,11 +3,12 @@ h1 { font-size: 20px; margin: 0 0 12px; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
 .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
 label { display:block; font-size: 12px; color: #333; margin-bottom: 4px; }
-input[type="number"] { width: 120px; padding: 6px; }
+input[type="number"] { width: 140px; padding: 6px; }
 button { padding: 10px 14px; border-radius: 10px; border: 1px solid #bbb; background: #fafafa; cursor: pointer; }
 button:hover { background: #f2f2f2; }
 .colors { display: flex; gap: 10px; flex-wrap: wrap; }
-.colors label { display:flex; gap:6px; align-items:center; font-size: 13px; }
+.colors label { display:flex; gap:8px; align-items:center; font-size: 13px; user-select:none; }
+.swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.2); display:inline-block; }
 .bottles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 12px; }
 .bottle { border: 1px solid #ddd; border-radius: 12px; padding: 10px; }
 .bottle h3 { margin: 0 0 8px; font-size: 14px; display:flex; justify-content:space-between; }
