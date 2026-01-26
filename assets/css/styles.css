@@ -1,0 +1,21 @@
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+h1 { font-size: 20px; margin: 0 0 12px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+label { display:block; font-size: 12px; color: #333; margin-bottom: 4px; }
+input[type="number"] { width: 120px; padding: 6px; }
+button { padding: 10px 14px; border-radius: 10px; border: 1px solid #bbb; background: #fafafa; cursor: pointer; }
+button:hover { background: #f2f2f2; }
+.colors { display: flex; gap: 10px; flex-wrap: wrap; }
+.colors label { display:flex; gap:6px; align-items:center; font-size: 13px; }
+.bottles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 12px; }
+.bottle { border: 1px solid #ddd; border-radius: 12px; padding: 10px; }
+.bottle h3 { margin: 0 0 8px; font-size: 14px; display:flex; justify-content:space-between; }
+.layers { display: grid; grid-template-columns: 1fr; gap: 6px; }
+select { padding: 6px; border-radius: 8px; }
+.hint { font-size: 12px; color: #555; margin-top: 8px; }
+.output { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; background: #0b1020; color: #e6e6e6; padding: 12px; border-radius: 12px; overflow:auto; max-height: 55vh; }
+.warn { color: #b00020; font-size: 13px; margin-top: 8px; }
+.ok { color: #0a7a22; font-size: 13px; margin-top: 8px; }
+.small { font-size: 12px; color:#444; }
+.inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }

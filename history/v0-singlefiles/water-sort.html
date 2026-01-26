@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Water Sort Solver</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+    label { display:block; font-size: 12px; color: #333; margin-bottom: 4px; }
+    input[type="number"] { width: 120px; padding: 6px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #bbb; background: #fafafa; cursor: pointer; }
+    button:hover { background: #f2f2f2; }
+    .colors { display: flex; gap: 10px; flex-wrap: wrap; }
+    .colors label { display:flex; gap:6px; align-items:center; font-size: 13px; }
+    .bottles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 12px; }
+    .bottle { border: 1px solid #ddd; border-radius: 12px; padding: 10px; }
+    .bottle h3 { margin: 0 0 8px; font-size: 14px; display:flex; justify-content:space-between; }
+    .layers { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    select { padding: 6px; border-radius: 8px; }
+    .hint { font-size: 12px; color: #555; margin-top: 8px; }
+    .output { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; background: #0b1020; color: #e6e6e6; padding: 12px; border-radius: 12px; overflow:auto; max-height: 55vh; }
+    .warn { color: #b00020; font-size: 13px; margin-top: 8px; }
+    .ok { color: #0a7a22; font-size: 13px; margin-top: 8px; }
+    .small { font-size: 12px; color:#444; }
+    .inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <h1>Water Sort Solver (manual input → step-by-step solution)</h1>
+
+  <div class="row">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Number of bottles</label>
+          <input id="numBottles" type="number" min="3" value="11">
+        </div>
+        <div>
+          <label>Bottle capacity (layers)</label>
+          <input id="capacity" type="number" min="2" value="4">
+        </div>
+      </div>
+      <div class="hint">Last <b>2 bottles</b> will be forced empty (helpers).</div>
+      <div class="inline" style="margin-top:10px;">
+        <button id="buildBtn">Build bottles UI</button>
+        <button id="exampleBtn">Load example</button>
+      </div>
+      <div id="buildMsg" class="small"></div>
+    </div>
+
+    <div class="card" style="flex:1; min-width: 320px;">
+      <label>Select colors in this level</label>
+      <div id="colorChecklist" class="colors"></div>
+      <div class="hint">Tip: only select colors that actually appear. Fewer colors = faster solving.</div>
+    </div>
+  </div>
+
+  <div id="bottleArea" class="bottles"></div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="card" style="flex:1;">
+      <div class="inline">
+        <button id="solveBtn">Solve</button>
+        <label class="inline" style="gap:6px; margin:0;">
+          <input id="showStates" type="checkbox" checked>
+          Show state after each move
+        </label>
+        <label class="inline" style="gap:6px; margin:0;">
+          <input id="shortMoves" type="checkbox">
+          Only moves (no poured amount)
+        </label>
+      </div>
+      <div id="status" class="hint"></div>
+      <div id="error" class="warn"></div>
+      <div id="success" class="ok"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="card" style="flex:1;">
+      <label>Solution</label>
+      <div id="output" class="output">Build bottles UI, enter colors, then press Solve.</div>
+    </div>
+  </div>
+
+<script>
+/**
+ * Representation
+ * - Each bottle is an array bottom->top, e.g. ["Blue","Blue","Red","Purple"] (top is last)
+ * - Empty bottle is []
+ * Rules:
+ * - Can pour if src not empty, dst not full, and (dst empty or dst top == src top)
+ * - When pouring, pour the largest contiguous block of src top color, limited by dst space
+ */
+
+const DEFAULT_COLORS = [
+  "Red","Pink","Orange","Yellow","Green","Light Green","Blue","Light Blue","Purple","Gray","Brown","Black","White"
+];
+
+const el = (id) => document.getElementById(id);
+
+function buildChecklist() {
+  const box = el("colorChecklist");
+  box.innerHTML = "";
+  DEFAULT_COLORS.forEach((c) => {
+    const lab = document.createElement("label");
+    lab.innerHTML = `<input type="checkbox" value="${c}"> <span>${c}</span>`;
+    box.appendChild(lab);
+  });
+}
+
+function selectedColors() {
+  return Array.from(el("colorChecklist").querySelectorAll("input[type=checkbox]:checked"))
+    .map(x => x.value);
+}
+
+function buildBottlesUI() {
+  const n = parseInt(el("numBottles").value, 10);
+  const cap = parseInt(el("capacity").value, 10);
+
+  const colors = selectedColors();
+  el("error").textContent = "";
+  el("success").textContent = "";
+
+  if (!Number.isFinite(n) || n < 3) return showError("Number of bottles must be >= 3.");
+  if (!Number.isFinite(cap) || cap < 2) return showError("Capacity must be >= 2.");
+  if (colors.length === 0) return showError("Select at least 1 color.");
+
+  const area = el("bottleArea");
+  area.innerHTML = "";
+
+  for (let i = 0; i < n; i++) {
+    const isHelperEmpty = (i >= n - 2);
+    const b = document.createElement("div");
+    b.className = "bottle";
+    b.dataset.index = String(i);
+
+    const title = document.createElement("h3");
+    title.innerHTML = `<span>Bottle ${i+1}</span><span class="small">${isHelperEmpty ? "EMPTY" : ""}</span>`;
+    b.appendChild(title);
+
+    const layers = document.createElement("div");
+    layers.className = "layers";
+
+    // UI is top->bottom for the user
+    for (let row = 0; row < cap; row++) {
+      const sel = document.createElement("select");
+      sel.dataset.layer = String(row); // 0 is top in UI
+      if (isHelperEmpty) {
+        sel.disabled = true;
+        sel.innerHTML = `<option value="">(empty)</option>`;
+      } else {
+        sel.innerHTML = `<option value="">(empty)</option>` + colors.map(c => `<option value="${c}">${c}</option>`).join("");
+      }
+      layers.appendChild(sel);
+    }
+
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    hint.textContent = isHelperEmpty ? "Helper bottle (forced empty)" : "Set colors TOP → BOTTOM (leave empty if shorter)";
+    b.appendChild(layers);
+    b.appendChild(hint);
+
+    area.appendChild(b);
+  }
+
+  el("buildMsg").textContent = `Built ${n} bottles with capacity ${cap}.`;
+  el("status").textContent = "Enter the level, then press Solve.";
+  el("output").textContent = "Ready.";
+}
+
+function showError(msg) {
+  el("error").textContent = msg;
+  el("success").textContent = "";
+  el("status").textContent = "";
+}
+
+function showSuccess(msg) {
+  el("success").textContent = msg;
+  el("error").textContent = "";
+}
+
+function readStateFromUI() {
+  const n = parseInt(el("numBottles").value, 10);
+  const cap = parseInt(el("capacity").value, 10);
+
+  const bottles = [];
+  for (let i = 0; i < n; i++) {
+    const b = el("bottleArea").querySelector(`.bottle[data-index="${i}"]`);
+    const selects = Array.from(b.querySelectorAll("select"));
+    // selects are ordered top->bottom in UI
+    const topToBottom = selects.map(s => s.value).filter(v => v !== "");
+    // Convert to bottom->top for solver:
+    const bottomToTop = topToBottom.slice().reverse();
+    if (bottomToTop.length > cap) throw new Error("Bottle over capacity?");
+    bottles.push(bottomToTop);
+  }
+  return { bottles, cap };
+}
+
+// ---------- Solver (BFS with pruning) ----------
+function isSolved(state, cap) {
+  for (const b of state) {
+    if (b.length === 0) continue;
+    if (b.length !== cap) return false;
+    const c0 = b[0];
+    for (let i = 1; i < b.length; i++) if (b[i] !== c0) return false;
+  }
+  return true;
+}
+
+function topRun(b) {
+  if (b.length === 0) return null;
+  const tc = b[b.length - 1];
+  let run = 1;
+  for (let i = b.length - 2; i >= 0; i--) {
+    if (b[i] === tc) run++;
+    else break;
+  }
+  return { color: tc, run };
+}
+
+function canPour(src, dst, cap) {
+  if (src.length === 0) return false;
+  if (dst.length >= cap) return false;
+  if (dst.length === 0) return true;
+  return dst[dst.length - 1] === src[src.length - 1];
+}
+
+function doPour(src, dst, cap) {
+  const tr = topRun(src);
+  const space = cap - dst.length;
+  const amt = Math.min(tr.run, space);
+  const newSrc = src.slice(0, src.length - amt);
+  const newDst = dst.concat(Array(amt).fill(tr.color));
+  return { newSrc, newDst, amt, color: tr.color };
+}
+
+function encodeState(state) {
+  // Simple stable encoding
+  return state.map(b => b.join(",")).join("|");
+}
+
+function cloneState(state) {
+  return state.map(b => b.slice());
+}
+
+function usefulMovePrune(src, dst, cap) {
+  // Prune obviously useless moves:
+  // - pouring from a uniform full bottle into an empty bottle is usually pointless
+  if (dst.length === 0 && src.length === cap) {
+    const c0 = src[0];
+    let allSame = true;
+    for (let i = 1; i < src.length; i++) if (src[i] !== c0) { allSame = false; break; }
+    if (allSame) return false;
+  }
+  return true;
+}
+
+function bfsSolve(startState, cap, maxStates = 400000) {
+  const startKey = encodeState(startState);
+  const q = [startState];
+  let qHead = 0;
+
+  // parent map: key -> { prevKey, move:{from,to,amt,color} }
+  const parent = new Map();
+  parent.set(startKey, null);
+
+  let explored = 0;
+
+  while (qHead < q.length) {
+    const state = q[qHead++];
+    explored++;
+
+    if (explored % 5000 === 0) {
+      el("status").textContent = `Searching... explored ${explored.toLocaleString()} states`;
+    }
+    if (explored > maxStates) {
+      return { ok:false, reason:`State limit reached (${maxStates.toLocaleString()}). Try selecting fewer colors or reducing bottles.`, explored };
+    }
+
+    if (isSolved(state, cap)) {
+      // reconstruct
+      const solMoves = [];
+      let key = encodeState(state);
+      while (parent.get(key) !== null) {
+        const rec = parent.get(key);
+        solMoves.push(rec.move);
+        key = rec.prevKey;
+      }
+      solMoves.reverse();
+      return { ok:true, moves: solMoves, explored };
+    }
+
+    const n = state.length;
+    for (let i = 0; i < n; i++) {
+      const src = state[i];
+      if (src.length === 0) continue;
+
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const dst = state[j];
+        if (!canPour(src, dst, cap)) continue;
+        if (!usefulMovePrune(src, dst, cap)) continue;
+
+        const next = cloneState(state);
+        const res = doPour(next[i], next[j], cap);
+        next[i] = res.newSrc;
+        next[j] = res.newDst;
+
+        const key = encodeState(next);
+        if (!parent.has(key)) {
+          parent.set(key, { prevKey: encodeState(state), move: { from:i, to:j, amt:res.amt, color:res.color } });
+          q.push(next);
+        }
+      }
+    }
+  }
+
+  return { ok:false, reason:"No solution found (this input may be invalid).", explored };
+}
+
+// ---------- Validation ----------
+function validateInput(bottles, cap) {
+  const n = bottles.length;
+  // last 2 must be empty
+  if (bottles[n-1].length !== 0 || bottles[n-2].length !== 0) {
+    return "Last 2 bottles must be empty (they are helper bottles).";
+  }
+  // capacity
+  for (let i = 0; i < n; i++) {
+    if (bottles[i].length > cap) return `Bottle ${i+1} exceeds capacity.`;
+  }
+  // Color counts should be multiples of cap for a standard solvable level (not always required, but good check)
+  const counts = new Map();
+  for (const b of bottles) for (const c of b) counts.set(c, (counts.get(c)||0)+1);
+  for (const [c, k] of counts.entries()) {
+    if (k % cap !== 0) {
+      return `Color "${c}" appears ${k} times, not a multiple of capacity (${cap}). This often means the level was entered incorrectly.`;
+    }
+  }
+  return null;
+}
+
+function formatState(state, cap) {
+  // print as top->bottom for readability
+  let out = "";
+  for (let i = 0; i < state.length; i++) {
+    const b = state[i];
+    const topToBottom = b.slice().reverse();
+    const padded = topToBottom.concat(Array(cap - topToBottom.length).fill("·"));
+    out += `${String(i+1).padStart(2," ")}: ${padded.join("  ")}\n`;
+  }
+  return out;
+}
+
+function applyMove(state, move, cap) {
+  const next = cloneState(state);
+  const res = doPour(next[move.from], next[move.to], cap);
+  next[move.from] = res.newSrc;
+  next[move.to] = res.newDst;
+  return next;
+}
+
+// ---------- UI wiring ----------
+buildChecklist();
+
+el("buildBtn").addEventListener("click", buildBottlesUI);
+
+el("solveBtn").addEventListener("click", () => {
+  el("error").textContent = "";
+  el("success").textContent = "";
+  try {
+    const { bottles, cap } = readStateFromUI();
+    const err = validateInput(bottles, cap);
+    if (err) return showError(err);
+
+    const start = bottles;
+    el("output").textContent = "Solving...\n";
+    el("status").textContent = "Starting search...";
+    const t0 = performance.now();
+    const result = bfsSolve(start, cap, 1000000);
+    const t1 = performance.now();
+
+    if (!result.ok) {
+      showError(result.reason);
+      el("output").textContent = `Failed: ${result.reason}\nExplored: ${result.explored.toLocaleString()} states\nTime: ${(t1-t0).toFixed(0)} ms`;
+      return;
+    }
+
+    showSuccess(`Solved! Moves: ${result.moves.length}. Explored: ${result.explored.toLocaleString()} states. Time: ${(t1-t0).toFixed(0)} ms`);
+    el("status").textContent = "Done.";
+
+    const showStates = el("showStates").checked;
+    const shortMoves = el("shortMoves").checked;
+
+    let text = "";
+    text += `Initial state (top→bottom):\n${formatState(start, cap)}\n`;
+    let cur = start;
+    result.moves.forEach((m, idx) => {
+      const line = shortMoves
+        ? `${idx+1}. ${m.from+1} → ${m.to+1}`
+        : `${idx+1}. ${m.from+1} → ${m.to+1}  (poured ${m.amt} × ${m.color})`;
+      text += line + "\n";
+      cur = applyMove(cur, m, cap);
+      if (showStates) {
+        text += formatState(cur, cap) + "\n";
+      }
+    });
+
+    el("output").textContent = text;
+
+  } catch (e) {
+    showError(String(e?.message || e));
+  }
+});
+
+el("exampleBtn").addEventListener("click", () => {
+  // Loads the level from your screenshot conversation (11 bottles, cap 4),
+  // with last two empty.
+  el("numBottles").value = 11;
+  el("capacity").value = 4;
+
+  // Auto-select colors used in that level
+  const needed = new Set(["Purple","Red","Blue","Pink","Orange","Green","Light Green","Light Blue","Gray"]);
+  el("colorChecklist").querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = needed.has(cb.value));
+
+  buildBottlesUI();
+
+  // Fill bottles TOP->BOTTOM (UI order)
+  const preset = [
+    ["Purple","Red","Blue","Blue"],                 // 1
+    ["Pink","Orange","Blue","Light Green"],         // 2
+    ["Green","Pink","Red","Purple"],                // 3
+    ["Light Green","Gray","Green","Pink"],          // 4
+    ["Orange","Gray","Light Green","Light Green"],  // 5
+    ["Pink","Light Blue","Gray","Red"],             // 6
+    ["Purple","Light Blue","Red","Blue"],           // 7
+    ["Green","Purple","Gray","Light Blue"],         // 8
+    ["Light Blue","Orange","Orange","Green"],       // 9
+    [],                                             // 10 empty
+    []                                              // 11 empty
+  ];
+
+  for (let i = 0; i < 11; i++) {
+    const b = el("bottleArea").querySelector(`.bottle[data-index="${i}"]`);
+    const selects = Array.from(b.querySelectorAll("select"));
+    const arr = preset[i];
+    for (let r = 0; r < selects.length; r++) {
+      selects[r].value = arr[r] || "";
+    }
+  }
+
+  el("output").textContent = "Example loaded. Press Solve.";
+});
+</script>
+</body>
+</html>

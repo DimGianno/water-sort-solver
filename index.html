@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Water Sort Solver</title>
+
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script defer src="assets/js/app.js"></script>
+</head>
+
+<body>
+  <h1>Water Sort Solver (manual input → step-by-step solution)</h1>
+
+  <div class="row">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Number of bottles</label>
+          <input id="numBottles" type="number" min="3" value="11">
+        </div>
+        <div>
+          <label>Bottle capacity (layers)</label>
+          <input id="capacity" type="number" min="2" value="4">
+        </div>
+      </div>
+      <div class="hint">Last <b>2 bottles</b> will be forced empty (helpers).</div>
+      <div class="inline" style="margin-top:10px;">
+        <button id="buildBtn">Build bottles UI</button>
+        <button id="exampleBtn">Load example</button>
+      </div>
+      <div id="buildMsg" class="small"></div>
+    </div>
+
+    <div class="card" style="flex:1; min-width: 320px;">
+      <label>Select colors in this level</label>
+      <div id="colorChecklist" class="colors"></div>
+      <div class="hint">Tip: only select colors that actually appear. Fewer colors = faster solving.</div>
+    </div>
+  </div>
+
+  <div id="bottleArea" class="bottles"></div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="card" style="flex:1;">
+      <div class="inline">
+        <button id="solveBtn">Solve</button>
+        <label class="inline" style="gap:6px; margin:0;">
+          <input id="showStates" type="checkbox" checked>
+          Show state after each move
+        </label>
+        <label class="inline" style="gap:6px; margin:0;">
+          <input id="shortMoves" type="checkbox">
+          Only moves (no poured amount)
+        </label>
+      </div>
+      <div id="status" class="hint"></div>
+      <div id="error" class="warn"></div>
+      <div id="success" class="ok"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="card" style="flex:1;">
+      <label>Solution</label>
+      <div id="output" class="output">Build bottles UI, enter colors, then press Solve.</div>
+    </div>
+  </div>
+</body>
+</html>
