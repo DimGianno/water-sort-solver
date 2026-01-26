@@ -1,15 +1,7 @@
-/**
- * Improvements applied:
- * - No example loader
- * - Colors: remove Black/White, add Dark Green
- * - Bottles max 14
- * - Color swatches in checklist
- * - Capacity fixed to 4
- * - Dropdown options show remaining counts and hide colors already used 4 times
- */
-
+// Fixed capacity
 const CAP = 4;
 
+// Palette (Black/White removed; Dark Green added)
 const COLOR_PALETTE = {
   "Red": "#e53935",
   "Pink": "#ec407a",
@@ -24,7 +16,6 @@ const COLOR_PALETTE = {
   "Gray": "#9e9e9e",
   "Brown": "#6d4c41",
 };
-
 const DEFAULT_COLORS = Object.keys(COLOR_PALETTE);
 
 const el = (id) => document.getElementById(id);
@@ -34,17 +25,15 @@ function buildChecklist() {
   box.innerHTML = "";
   DEFAULT_COLORS.forEach((c) => {
     const lab = document.createElement("label");
-    const sw = document.createElement("span");
-    sw.className = "swatch";
-    sw.style.background = COLOR_PALETTE[c] || "#ccc";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.value = c;
-    cb.addEventListener("change", () => {
-      // if UI already built, update dropdown options live
-      updateAllDropdownOptions();
-    });
+    cb.addEventListener("change", () => updateAllDropdownOptions());
+
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = COLOR_PALETTE[c] || "#ccc";
 
     const name = document.createElement("span");
     name.textContent = c;
@@ -72,9 +61,28 @@ function showSuccess(msg) {
   el("error").textContent = "";
 }
 
+function resetAll() {
+  // Reset inputs
+  el("numBottles").value = 11;
+  el("showStates").checked = true;
+  el("shortMoves").checked = false;
+
+  // Uncheck all colors
+  el("colorChecklist").querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+
+  // Clear UI + messages
+  el("bottleArea").innerHTML = "";
+  el("buildMsg").textContent = "";
+  el("status").textContent = "";
+  el("error").textContent = "";
+  el("success").textContent = "";
+  el("output").textContent = "Build bottles UI, enter colors, then press Solve.";
+}
+
 function buildBottlesUI() {
   const n = parseInt(el("numBottles").value, 10);
   const colors = selectedColors();
+
   el("error").textContent = "";
   el("success").textContent = "";
 
@@ -87,6 +95,7 @@ function buildBottlesUI() {
 
   for (let i = 0; i < n; i++) {
     const isHelperEmpty = (i >= n - 2);
+
     const b = document.createElement("div");
     b.className = "bottle";
     b.dataset.index = String(i);
@@ -98,7 +107,6 @@ function buildBottlesUI() {
     const layers = document.createElement("div");
     layers.className = "layers";
 
-    // UI is top->bottom for the user
     for (let row = 0; row < CAP; row++) {
       const sel = document.createElement("select");
       sel.dataset.layer = String(row); // 0 is top in UI
@@ -107,9 +115,11 @@ function buildBottlesUI() {
         sel.disabled = true;
         sel.innerHTML = `<option value="">(empty)</option>`;
       } else {
-        // options will be populated dynamically (counts)
         sel.innerHTML = `<option value="">(choose color)</option>`;
-        sel.addEventListener("change", () => updateAllDropdownOptions());
+        sel.addEventListener("change", () => {
+          setSelectBackground(sel);
+          updateAllDropdownOptions();
+        });
       }
 
       layers.appendChild(sel);
@@ -135,18 +145,30 @@ function buildBottlesUI() {
 
 function getAllUserSelects() {
   return Array.from(el("bottleArea").querySelectorAll(".bottle select"))
-    .filter(sel => !sel.disabled); // ignore helper bottles
+    .filter(sel => !sel.disabled);
 }
 
 function computeUsedCounts() {
   const counts = new Map();
   DEFAULT_COLORS.forEach(c => counts.set(c, 0));
-
   for (const sel of getAllUserSelects()) {
     const v = sel.value;
     if (v) counts.set(v, (counts.get(v) || 0) + 1);
   }
   return counts;
+}
+
+function setSelectBackground(sel) {
+  const v = sel.value;
+  if (!v) {
+    sel.style.backgroundColor = "";
+    sel.style.color = "";
+    return;
+  }
+  const bg = COLOR_PALETTE[v] || "";
+  sel.style.backgroundColor = bg;
+  // Improve text contrast a bit (simple heuristic)
+  sel.style.color = (v === "Yellow" || v === "Light Blue" || v === "Light Green") ? "#111" : "#fff";
 }
 
 function updateAllDropdownOptions(initialPopulate = false) {
@@ -161,53 +183,51 @@ function updateAllDropdownOptions(initialPopulate = false) {
 
   for (const sel of selects) {
     const current = sel.value || "";
-    // Rebuild options with dynamic "(x left)"
-    // x left is computed as: 4 - used + (current==color ? 1 : 0)
-    // so the currently-selected color doesn't disappear.
+
     const opts = [];
-    opts.push({ value: "", label: "(choose color)", disabled: false });
+    opts.push({ value: "", label: "(choose color)" });
 
     for (const c of colors) {
-      const usedCount = used.get(c) || 0;
-      const leftIfPickHere = CAP - usedCount + (current === c ? 1 : 0);
+      const usedTotal = used.get(c) || 0;
+      const effectiveUsed = usedTotal - (current === c ? 1 : 0);
+      const remainingNow = CAP - effectiveUsed;
 
-      // Hide if none left AND it's not currently selected
-      if (leftIfPickHere <= 0 && current !== c) continue;
+      if (remainingNow <= 0 && current !== c) continue;
 
-      opts.push({
-        value: c,
-        label: `${c} (${Math.max(0, leftIfPickHere)} left)`,
-        disabled: false,
-      });
+      const label = (current === c) ? `${c}` : `${c} (${Math.max(0, remainingNow)} left)`;
+      opts.push({ value: c, label });
     }
 
-    // Preserve selection if possible
     sel.innerHTML = "";
     for (const o of opts) {
       const opt = document.createElement("option");
       opt.value = o.value;
       opt.textContent = o.label;
-      opt.disabled = o.disabled;
+
+      if (o.value && COLOR_PALETTE[o.value]) {
+        opt.style.backgroundColor = COLOR_PALETTE[o.value];
+        opt.style.color = (o.value === "Yellow" || o.value === "Light Blue" || o.value === "Light Green") ? "#111" : "#fff";
+      }
       sel.appendChild(opt);
     }
 
-    // restore current selection if present in options
     if (current) {
       const found = Array.from(sel.options).some(o => o.value === current);
-      if (found) sel.value = current;
-      else sel.value = ""; // if got invalid due to checklist change
+      sel.value = found ? current : "";
     } else if (initialPopulate) {
       sel.value = "";
     }
+
+    setSelectBackground(sel);
   }
 
-  // Optional: show progress info
-  const totalSlots = (parseInt(el("numBottles").value,10) - 2) * CAP;
+  const n = parseInt(el("numBottles").value, 10);
+  const totalSlots = (n - 2) * CAP;
   const filled = selects.filter(s => s.value).length;
   el("status").textContent = `Filled ${filled}/${totalSlots} layers.`;
 }
 
-// ---------- Solver (same BFS as before, cap fixed to 4) ----------
+// ---------- Solver (BFS) ----------
 function isSolved(state) {
   for (const b of state) {
     if (b.length === 0) continue;
@@ -254,7 +274,6 @@ function cloneState(state) {
 }
 
 function usefulMovePrune(src, dst) {
-  // avoid moving from a uniform full bottle into empty
   if (dst.length === 0 && src.length === CAP) {
     const c0 = src[0];
     let allSame = true;
@@ -308,7 +327,6 @@ function bfsSolve(startState, maxStates = 400000) {
 
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
-        // avoid immediate undo
         if (lastMove && lastMove.from === j && lastMove.to === i) continue;
 
         const dst = state[j];
@@ -352,17 +370,14 @@ function validateInput(bottles) {
   const colors = selectedColors();
   if (colors.length === 0) return "Select colors first.";
 
-  // last 2 empty
   if (bottles[n-1].length !== 0 || bottles[n-2].length !== 0) {
     return "Last 2 bottles must be empty (helpers).";
   }
 
-  // All non-helper bottles must be full (4 layers)
   for (let i = 0; i < n - 2; i++) {
     if (bottles[i].length !== CAP) return `Bottle ${i+1} must have exactly ${CAP} layers (full).`;
   }
 
-  // Each selected color must appear exactly 4 times
   const counts = new Map();
   for (const c of colors) counts.set(c, 0);
   for (const b of bottles) for (const c of b) {
@@ -373,10 +388,6 @@ function validateInput(bottles) {
     const k = counts.get(c) || 0;
     if (k !== CAP) return `Color "${c}" appears ${k} times, but must appear exactly ${CAP} times.`;
   }
-
-  // Total filled layers must match
-  const totalFilled = bottles.slice(0, n-2).reduce((acc,b)=>acc+b.length,0);
-  if (totalFilled !== (n-2)*CAP) return "Some bottle is not fully filled.";
 
   return null;
 }
@@ -400,15 +411,17 @@ function applyMove(state, move) {
   return next;
 }
 
-// ---------- UI wiring ----------
+// ---------- Wiring ----------
 buildChecklist();
 
 el("buildBtn").addEventListener("click", buildBottlesUI);
+el("resetBtn").addEventListener("click", resetAll);
 
 el("numBottles").addEventListener("change", () => {
-  const v = parseInt(el("numBottles").value, 10);
-  if (v > 14) el("numBottles").value = 14;
-  if (v < 3) el("numBottles").value = 3;
+  let v = parseInt(el("numBottles").value, 10);
+  if (v > 14) v = 14;
+  if (v < 3) v = 3;
+  el("numBottles").value = v;
 });
 
 el("solveBtn").addEventListener("click", () => {
