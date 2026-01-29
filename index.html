@@ -4,11 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Water Sort Solver</title>
-
   <link rel="stylesheet" href="assets/css/styles.css" />
-  <script defer src="assets/js/app.js"></script>
+  <script src="assets/js/app.js" defer></script>
 </head>
-
 <body>
   <h1>Water Sort Solver (manual input → step-by-step solution)</h1>
 
@@ -20,15 +18,12 @@
           <input id="numBottles" type="number" min="3" max="14" value="11">
         </div>
       </div>
-
       <div class="hint">
         Capacity is always <b>4</b>. Last <b>2 bottles</b> are forced empty (helpers). All other bottles must be full.
       </div>
-
       <div class="inline" style="margin-top:10px;">
         <button id="resetBtn">Reset</button>
       </div>
-
       <div id="buildMsg" class="small"></div>
     </div>
 
@@ -43,7 +38,6 @@
       <div class="inline">
         <button id="buildBtn">Build bottles UI</button>
       </div>
-
       <div class="hint">
         You can select at most <b>(bottles − 2)</b> colors. Each selected color must appear exactly <b>4</b> times.
       </div>
@@ -57,17 +51,23 @@
       <div class="inline">
         <button id="solveBtn" disabled>Solve</button>
 
+        <div class="inline" style="gap:6px;">
+          <label style="margin:0;">Mode</label>
+          <select id="modeSel">
+            <option value="fast" selected>Fast</option>
+            <option value="optimal">Optimal-ish</option>
+          </select>
+        </div>
+
         <label class="inline" style="gap:6px; margin:0;">
           <input id="showStates" type="checkbox" checked>
           Show state after each move
         </label>
-
         <label class="inline" style="gap:6px; margin:0;">
           <input id="shortMoves" type="checkbox">
           Only moves (no poured amount)
         </label>
       </div>
-
       <div id="status" class="hint"></div>
       <div id="error" class="warn"></div>
       <div id="success" class="ok"></div>
