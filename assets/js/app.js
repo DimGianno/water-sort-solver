@@ -26,8 +26,7 @@ const CAP = 4;
   let replayTimer = null;
   let replayIndex = 0;
 
-  let popover = null;
-  let openPopoverBottle = -1;    // b index or -1
+  let openPopoverBottle = null;  // b index or null
 
   function showError(msg) { el("error").textContent = msg || ""; el("success").textContent = ""; }
   function showSuccess(msg) { el("success").textContent = msg || ""; el("error").textContent = ""; }
@@ -40,6 +39,11 @@ const CAP = 4;
   function colorMaxAllowed() {
     const n = parseInt(el("numBottles").value, 10);
     return Math.max(1, Math.min(12, n - 2));
+  }
+
+  function updateSelectAllVisibility() {
+    const n = parseInt(el("numBottles").value, 10);
+    el("selectAllBtn").style.display = (n === 14) ? "inline-block" : "none";
   }
 
   function updateColorLimitUI() {
@@ -67,13 +71,11 @@ const CAP = 4;
         if (chosen > max) cb.checked = false;
 
         updateColorLimitUI();
-        // If already built, popover palette needs refresh + validation
         if (bottleLayers.length) {
           renderAllLayers();
-          renderPopover(openPopoverBottle);
-          updateRemainingSummary();
           runContinuousValidation();
           updateSolveEnabled();
+          renderPopover(openPopoverBottle);
         }
       });
 
@@ -89,7 +91,26 @@ const CAP = 4;
       lab.appendChild(name);
       box.appendChild(lab);
     });
+
+    updateSelectAllVisibility();
     updateColorLimitUI();
+  }
+
+  function selectAllColors() {
+    // Only intended when n=14 (maxColors=12)
+    const n = parseInt(el("numBottles").value, 10);
+    if (n !== 14) return;
+    el("colorChecklist").querySelectorAll("input[type=checkbox]").forEach(cb => {
+      cb.checked = true;
+      cb.disabled = false;
+    });
+    updateColorLimitUI();
+    if (bottleLayers.length) {
+      renderAllLayers();
+      runContinuousValidation();
+      updateSolveEnabled();
+      renderPopover(openPopoverBottle);
+    }
   }
 
   function resetAll() {
@@ -119,10 +140,11 @@ const CAP = 4;
 
     hideIO();
     hideReplay();
-    closePopover();
 
+    openPopoverBottle = null;
+
+    updateSelectAllVisibility();
     updateColorLimitUI();
-    updateRemainingSummary();
   }
 
   // ---------- Build bottles UI ----------
@@ -145,10 +167,10 @@ const CAP = 4;
     selectedLayer = null;
     inputHistory = [];
     lastSolution = null;
+    openPopoverBottle = null;
 
     el("undoBtn").disabled = true;
     hideReplay();
-    closePopover();
 
     const area = el("bottleArea");
     area.innerHTML = "";
@@ -172,23 +194,29 @@ const CAP = 4;
         layer.className = "layer empty";
         layer.dataset.bottle = String(i);
         layer.dataset.layer = String(l);
-        layer.innerHTML = `<span class="tag">Click to set</span><span class="small">${l===0?"TOP":(l===3?"BOTTOM":"")}</span>`;
+        layer.innerHTML = `<span class="tag">Tap to set</span><span class="small">${l===0?"TOP":(l===3?"BOTTOM":"")}</span>`;
 
         if (isHelperEmpty) {
           layer.style.cursor = "not-allowed";
           layer.style.opacity = "0.55";
           layer.innerHTML = `<span class="tag">Helper</span><span class="small">${l===0?"TOP":(l===3?"BOTTOM":"")}</span>`;
         } else {
-          layer.addEventListener("click", (ev) => onLayerClick(ev, i, l));
+          layer.addEventListener("click", () => onLayerClick(i, l));
         }
 
         layers.appendChild(layer);
       }
 
+      const pop = document.createElement("div");
+      pop.className = "popover";
+      pop.id = `popover-${i}`;
+
+      card.appendChild(layers);
+      card.appendChild(pop);
+
       const hint = document.createElement("div");
       hint.className = "hint";
-      hint.textContent = isHelperEmpty ? "Helper bottle (forced empty)" : "Click a layer to open the color popover near this bottle.";
-      card.appendChild(layers);
+      hint.textContent = isHelperEmpty ? "Helper bottle (forced empty)" : "Tap a layer: palette appears below this bottle.";
       card.appendChild(hint);
 
       area.appendChild(card);
@@ -199,35 +227,46 @@ const CAP = 4;
     el("output").textContent = "Ready.";
 
     renderAllLayers();
-    updateRemainingSummary();
     runContinuousValidation();
     updateSolveEnabled();
   }
 
-  function onLayerClick(ev, b, l) {
+  function onLayerClick(b, l) {
     const n = bottleLayers.length;
     if (!n) return;
     if (b >= n-2) return;
 
-    // Toggle clear if clicking same selected
+    closeAllPopovers();
+
+    // click same selected layer => clear it
     if (selectedLayer && selectedLayer.b === b && selectedLayer.l === l) {
-      setLayerColor(b,l,"", true);
+      setLayerColor(b, l, "", true);
       selectedLayer = null;
+      openPopoverBottle = b;
+      openPopover(b);
       renderAllLayers();
-      updateRemainingSummary();
+      renderPopover(b);
       runContinuousValidation();
       updateSolveEnabled();
-      // keep popover open for this bottle
-      openPopoverBottle = b;
-      renderPopover(b);
       return;
     }
 
     selectedLayer = {b,l};
-    renderAllLayers();
-
     openPopoverBottle = b;
+    openPopover(b);
+    renderAllLayers();
     renderPopover(b);
+  }
+
+  function openPopover(b) {
+    const pop = el(`popover-${b}`);
+    if (!pop) return;
+    pop.classList.add("open");
+  }
+
+  function closeAllPopovers() {
+    const area = el("bottleArea");
+    area.querySelectorAll(".popover").forEach(p => p.classList.remove("open"));
   }
 
   function setLayerColor(b,l,color, pushHistory=false) {
@@ -257,8 +296,8 @@ const CAP = 4;
     bottleLayers[rec.b][rec.l] = rec.prev;
     el("undoBtn").disabled = inputHistory.length === 0;
     selectedLayer = null;
+
     renderAllLayers();
-    updateRemainingSummary();
     runContinuousValidation();
     updateSolveEnabled();
     renderPopover(openPopoverBottle);
@@ -280,7 +319,7 @@ const CAP = 4;
         div.classList.add("empty");
         div.style.backgroundColor = "#fff";
         div.style.color = "#999";
-        div.querySelector(".tag").textContent = "Click to set";
+        div.querySelector(".tag").textContent = "Tap to set";
       } else {
         div.classList.remove("empty");
         div.style.backgroundColor = COLOR_PALETTE[color] || "#ddd";
@@ -290,7 +329,6 @@ const CAP = 4;
     });
   }
 
-  // ---------- Counts + Remaining ----------
   function computeUsedCounts() {
     const counts = {};
     for (const c of DEFAULT_COLORS) counts[c] = 0;
@@ -304,117 +342,95 @@ const CAP = 4;
     return counts;
   }
 
-  function updateRemainingSummary() {
+  function renderPopover(b) {
+    if (b === null || b === undefined) return;
+    const pop = el(`popover-${b}`);
+    if (!pop) return;
+
     const colors = selectedColors();
-    if (!colors.length || !bottleLayers.length) {
-      el("remainingSummary").textContent = "Remaining: —";
+    const counts = computeUsedCounts();
+
+    if (!selectedLayer || selectedLayer.b !== b) {
+      pop.innerHTML = "";
       return;
     }
-    const counts = computeUsedCounts();
-    const parts = colors.map(c => `${c}: ${Math.max(0, CAP-(counts[c]||0))}`);
-    el("remainingSummary").textContent = `Remaining: ${parts.join(" · ")}`;
-  }
 
-  // ---------- Popover palette ----------
-  function ensurePopover() {
-    if (popover) return popover;
-    popover = document.createElement("div");
-    popover.className = "popover";
-    popover.style.display = "none";
-    document.body.appendChild(popover);
+    const curVal = bottleLayers[selectedLayer.b][selectedLayer.l] || "";
 
-    // click outside closes
-    document.addEventListener("click", (e) => {
-      if (!popover || popover.style.display === "none") return;
-      if (popover.contains(e.target)) return;
-      const layerEl = e.target.closest?.(".layer");
-      if (layerEl) return; // clicking layers should keep it managed
-      closePopover();
+    pop.innerHTML = "";
+
+    const top = document.createElement("div");
+    top.className = "popover-top";
+
+    const left = document.createElement("div");
+    left.className = "small";
+    left.textContent = `Bottle ${b+1} • Layer ${selectedLayer.l+1}`;
+
+    const actions = document.createElement("div");
+    actions.className = "popover-actions";
+
+    const er = document.createElement("button");
+    er.textContent = "Eraser";
+    er.addEventListener("click", () => {
+      setLayerColor(selectedLayer.b, selectedLayer.l, "", true);
+      selectedLayer = null;
+      openPopoverBottle = b;
+      renderAllLayers();
+      renderPopover(b);
+      runContinuousValidation();
+      updateSolveEnabled();
     });
 
-    return popover;
-  }
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "Close";
+    closeBtn.addEventListener("click", () => {
+      selectedLayer = null;
+      closeAllPopovers();
+      renderAllLayers();
+      renderPopover(b);
+    });
 
-  function closePopover() {
-    if (!popover) return;
-    popover.style.display = "none";
-    popover.innerHTML = "";
-    openPopoverBottle = -1;
-  }
+    actions.appendChild(er);
+    actions.appendChild(closeBtn);
 
-  function renderPopover(b) {
-    if (b < 0 || !bottleLayers.length) return;
-    if (b >= bottleLayers.length - 2) return closePopover();
-    if (!selectedLayer) return; // open only if a layer selected
+    top.appendChild(left);
+    top.appendChild(actions);
+    pop.appendChild(top);
 
-    const p = ensurePopover();
-    p.innerHTML = "";
-
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = `Choose color for Bottle ${b+1}`;
-    p.appendChild(title);
-
-    const pal = document.createElement("div");
-    pal.className = "palette";
-
-    const colors = selectedColors();
-    const counts = computeUsedCounts();
+    const grid = document.createElement("div");
+    grid.className = "palette-grid";
 
     for (const c of colors) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "color-btn";
+      let remaining = CAP - (counts[c] || 0);
+      if (curVal === c) remaining += 1;
 
-      const box = document.createElement("span");
-      box.className = "color-box";
-      box.style.background = COLOR_PALETTE[c] || "#ccc";
+      const tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = "color-tile";
+      tile.style.background = COLOR_PALETTE[c] || "#ccc";
+      tile.disabled = (remaining <= 0);
 
-      const name = document.createElement("span");
-      name.className = "name";
-      name.textContent = c;
+      if (curVal === c) tile.classList.add("tile-outline");
 
-      const rem = document.createElement("span");
-      rem.className = "rem";
+      const badge = document.createElement("span");
+      badge.className = "count-badge";
+      badge.textContent = `${Math.max(0, remaining)}`;
+      tile.appendChild(badge);
 
-      let effectiveRemaining = CAP - (counts[c] || 0);
-      const cur = bottleLayers[selectedLayer.b]?.[selectedLayer.l] || "";
-      if (cur === c) effectiveRemaining += 1;
-
-      rem.textContent = `(${Math.max(0,effectiveRemaining)} left)`;
-      btn.disabled = effectiveRemaining <= 0;
-
-      btn.addEventListener("click", () => {
-        if (!selectedLayer) return;
-        const {b:bb,l:ll} = selectedLayer;
-        setLayerColor(bb,ll,c,true);
+      tile.addEventListener("click", () => {
+        setLayerColor(selectedLayer.b, selectedLayer.l, c, true);
         selectedLayer = null;
+        openPopoverBottle = b;
         renderAllLayers();
-        updateRemainingSummary();
+        renderPopover(b);
         runContinuousValidation();
         updateSolveEnabled();
-        closePopover();
       });
 
-      btn.appendChild(box);
-      btn.appendChild(name);
-      btn.appendChild(rem);
-      pal.appendChild(btn);
+      grid.appendChild(tile);
     }
 
-    p.appendChild(pal);
-
-    // position near bottle element
-    const bottleEl = document.querySelector(`.bottle[data-bottle="${b}"]`);
-    if (bottleEl) {
-      const r = bottleEl.getBoundingClientRect();
-      const x = Math.min(window.innerWidth - 280, Math.max(10, r.right + 10));
-      const y = Math.min(window.innerHeight - 220, Math.max(10, r.top));
-      p.style.left = `${Math.round(x)}px`;
-      p.style.top = `${Math.round(y)}px`;
-    }
-
-    p.style.display = "block";
+    pop.appendChild(grid);
   }
 
   // ---------- Validation + Solve enabled ----------
@@ -524,6 +540,8 @@ const CAP = 4;
       const cb = el("colorChecklist").querySelector(`input[type=checkbox][value="${CSS.escape(c)}"]`);
       if (cb) cb.checked = true;
     }
+
+    updateSelectAllVisibility();
     updateColorLimitUI();
 
     buildBottlesUI();
@@ -541,10 +559,9 @@ const CAP = 4;
     el("undoBtn").disabled = true;
 
     renderAllLayers();
-    updateRemainingSummary();
     runContinuousValidation();
     updateSolveEnabled();
-    closePopover();
+    renderPopover(openPopoverBottle);
   }
 
   function onExport() {
@@ -576,7 +593,7 @@ const CAP = 4;
     }
   }
 
-  // ---------- Solver + Replay (same as previous versions) ----------
+  // ---------- Solver + Replay (unchanged) ----------
   function isSolved(state) {
     for (const b of state) {
       if (b.length === 0) continue;
@@ -809,6 +826,7 @@ const CAP = 4;
     return out;
   }
 
+  // ---------- Replay ----------
   function hideReplay() {
     el("replay").style.display = "none";
     if (replayTimer) { clearInterval(replayTimer); replayTimer = null; }
@@ -961,7 +979,6 @@ const CAP = 4;
 
   // ---------- Wiring ----------
   buildChecklist();
-  updateRemainingSummary();
 
   el("resetBtn").addEventListener("click", resetAll);
   el("undoBtn").addEventListener("click", undoLastInput);
@@ -983,29 +1000,25 @@ const CAP = 4;
     if (replayTimer) { pauseReplay(); playReplay(); }
   });
 
+  el("selectAllBtn").addEventListener("click", selectAllColors);
+
   el("numBottles").addEventListener("change", () => {
     let v = parseInt(el("numBottles").value, 10);
     if (v > 14) v = 14;
     if (v < 3) v = 3;
     el("numBottles").value = v;
 
+    // enforce max colors = bottles - 2
     const max = colorMaxAllowed();
     const checked = Array.from(el("colorChecklist").querySelectorAll("input[type=checkbox]:checked"));
     if (checked.length > max) for (let k = max; k < checked.length; k++) checked[k].checked = false;
 
+    updateSelectAllVisibility();
     updateColorLimitUI();
 
     if (bottleLayers.length) {
-      buildBottlesUI();
-      updateRemainingSummary();
       runContinuousValidation();
       updateSolveEnabled();
+      renderPopover(openPopoverBottle);
     }
   });
-
-  // Keep IO helpers
-  function hideIO() {
-    el("ioArea").style.display = "none";
-    el("ioMsg").textContent = "";
-    el("ioText").value = "";
-  }

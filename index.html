@@ -19,20 +19,25 @@
           <input id="numBottles" type="number" min="3" max="14" value="11">
         </div>
       </div>
-      <div class="hint">
-        Capacity is always <b>4</b>. Last <b>2 bottles</b> are forced empty (helpers).
-      </div>
+      <div class="hint">Capacity is always <b>4</b>. Last <b>2 bottles</b> are forced empty (helpers).</div>
       <div class="inline" style="margin-top:10px;">
         <button id="resetBtn">Reset</button>
-        <button id="undoBtn" disabled>Undo</button>
+        <button id="undoBtn" disabled>Undo last input</button>
       </div>
       <div id="buildMsg" class="small" style="margin-top:8px;"></div>
     </div>
 
     <div class="card" style="flex:1; min-width: 360px;">
-      <label>Select colors in this level</label>
-      <div id="colorChecklist" class="colors"></div>
-      <div class="hint" id="colorLimitHint"></div>
+      <div class="inline" style="justify-content:space-between; align-items:flex-end;">
+        <div style="flex:1;">
+          <label>Select colors in this level</label>
+          <div id="colorChecklist" class="colors"></div>
+          <div class="hint" id="colorLimitHint"></div>
+        </div>
+        <div>
+          <button id="selectAllBtn" title="Select all colors (only available with 14 bottles)">Select all</button>
+        </div>
+      </div>
 
       <div class="divider"></div>
 
@@ -42,13 +47,7 @@
         <button id="importBtn">Import</button>
       </div>
 
-      <div class="hint">
-        Tip: Click a layer to open the color palette near the bottle (popover). Click the same layer again to clear.
-      </div>
-
-      <div class="palette-wrap">
-        <span class="pill" id="remainingSummary">Remaining: —</span>
-      </div>
+      <div id="validationMsg" class="small" style="margin-top:10px;"></div>
 
       <div id="ioArea" style="display:none; margin-top:10px;">
         <div class="small" style="margin-bottom:6px;">Paste an exported code to import, or copy your export:</div>
@@ -59,8 +58,6 @@
           <span class="small" id="ioMsg"></span>
         </div>
       </div>
-
-      <div id="validationMsg" class="small" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -112,7 +109,7 @@
             <input id="speedRange" type="range" min="0.25" max="4" step="0.25" value="1" />
             <span class="small" id="speedLabel">1×</span>
           </label>
-          <span class="pill" id="stepLabel">Step 0/0</span>
+          <span class="pill" id="stepLabel" style="background:#f1f1f1;border:1px solid #e4e4e4;border-radius:999px;padding:6px 10px;font-size:12px;">Step 0/0</span>
         </div>
         <div id="replayGrid" class="replay-grid"></div>
       </div>
