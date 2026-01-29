@@ -1,4 +1,4 @@
-const CAP = 4;
+  const CAP = 4;
 
   const COLOR_PALETTE = {
     "Red": "#e53935",
@@ -15,7 +15,6 @@ const CAP = 4;
     "Brown": "#6d4c41",
   };
   const DEFAULT_COLORS = Object.keys(COLOR_PALETTE);
-
   const el = (id) => document.getElementById(id);
 
   function selectedColors() {
@@ -23,15 +22,8 @@ const CAP = 4;
       .map(x => x.value);
   }
 
-  function showError(msg) {
-    el("error").textContent = msg;
-    el("success").textContent = "";
-  }
-
-  function showSuccess(msg) {
-    el("success").textContent = msg;
-    el("error").textContent = "";
-  }
+  function showError(msg) { el("error").textContent = msg; el("success").textContent = ""; }
+  function showSuccess(msg) { el("success").textContent = msg; el("error").textContent = ""; }
 
   // ---------- Color selection limit ----------
   function colorMaxAllowed() {
@@ -52,10 +44,8 @@ const CAP = 4;
   function buildChecklist() {
     const box = el("colorChecklist");
     box.innerHTML = "";
-
     DEFAULT_COLORS.forEach((c) => {
       const lab = document.createElement("label");
-
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.value = c;
@@ -63,7 +53,6 @@ const CAP = 4;
         const max = colorMaxAllowed();
         const chosen = selectedColors().length;
         if (chosen > max) cb.checked = false;
-
         updateColorLimitUI();
         updateAllDropdownOptions();
         updateSolveEnabled();
@@ -81,7 +70,6 @@ const CAP = 4;
       lab.appendChild(name);
       box.appendChild(lab);
     });
-
     updateColorLimitUI();
   }
 
@@ -90,10 +78,10 @@ const CAP = 4;
     el("numBottles").value = 11;
     el("showStates").checked = true;
     el("shortMoves").checked = false;
+    el("modeSel").value = "fast";
 
     el("colorChecklist").querySelectorAll("input[type=checkbox]").forEach(cb => {
-      cb.checked = false;
-      cb.disabled = false;
+      cb.checked = false; cb.disabled = false;
     });
 
     el("bottleArea").innerHTML = "";
@@ -107,7 +95,7 @@ const CAP = 4;
     updateColorLimitUI();
   }
 
-  // ---------- Build bottles ----------
+  // ---------- Build bottles UI ----------
   function buildBottlesUI() {
     const n = parseInt(el("numBottles").value, 10);
     const colors = selectedColors();
@@ -291,12 +279,18 @@ const CAP = 4;
   }
 
   // ---------- Core mechanics ----------
+  function isUniform(b) {
+    if (b.length === 0) return true;
+    const c0 = b[0];
+    for (let i = 1; i < b.length; i++) if (b[i] !== c0) return false;
+    return true;
+  }
+
   function isSolved(state) {
     for (const b of state) {
       if (b.length === 0) continue;
       if (b.length !== CAP) return false;
-      const c0 = b[0];
-      for (let i = 1; i < b.length; i++) if (b[i] !== c0) return false;
+      if (!isUniform(b)) return false;
     }
     return true;
   }
@@ -328,21 +322,23 @@ const CAP = 4;
     return { newSrc, newDst, amt, color: tr.color };
   }
 
-  function encodeState(state) {
-    return state.map(b => b.join(",")).join("|");
+  function cloneState(state) { return state.map(b => b.slice()); }
+
+  // ---------- Canonicalization (major upgrade) ----------
+  // We treat bottles as unlabeled for hashing: sort bottle strings.
+  function bottleKey(b) { return b.join(","); } // bottom->top
+  function canonicalKey(state) {
+    const keys = state.map(bottleKey).sort(); // empty "" comes first
+    return keys.join("|");
   }
 
-  function cloneState(state) {
-    return state.map(b => b.slice());
-  }
+  // ---------- More pruning ----------
+  function usefulMovePrune(src, dst, mode) {
+    if (dst.length === 0 && src.length === CAP && isUniform(src)) return false;
 
-  function usefulMovePrune(src, dst) {
-    // don't pour from a uniform full bottle into empty
-    if (dst.length === 0 && src.length === CAP) {
-      const c0 = src[0];
-      let allSame = true;
-      for (let i = 1; i < src.length; i++) if (src[i] !== c0) { allSame = false; break; }
-      if (allSame) return false;
+    if (mode === "fast" && dst.length === 0) {
+      const tr = topRun(src);
+      if (tr && tr.run === 1) return false;
     }
     return true;
   }
@@ -351,21 +347,15 @@ const CAP = 4;
   class MinHeap {
     constructor() { this.a = []; }
     size() { return this.a.length; }
-    push(x) {
-      this.a.push(x);
-      this._siftUp(this.a.length - 1);
-    }
+    push(x) { this.a.push(x); this._up(this.a.length - 1); }
     pop() {
       if (this.a.length === 0) return null;
       const root = this.a[0];
       const last = this.a.pop();
-      if (this.a.length > 0) {
-        this.a[0] = last;
-        this._siftDown(0);
-      }
+      if (this.a.length) { this.a[0] = last; this._down(0); }
       return root;
     }
-    _siftUp(i) {
+    _up(i) {
       while (i > 0) {
         const p = (i - 1) >> 1;
         if (this.a[p].f <= this.a[i].f) break;
@@ -373,7 +363,7 @@ const CAP = 4;
         i = p;
       }
     }
-    _siftDown(i) {
+    _down(i) {
       const n = this.a.length;
       while (true) {
         let l = i * 2 + 1;
@@ -388,46 +378,99 @@ const CAP = 4;
     }
   }
 
-  // Heuristic: counts "disorder" by segments; fast & effective.
-  // (Not guaranteed admissible => solution may not be the shortest, but it’s usually much faster than BFS.)
-  function heuristic(state) {
+  function heuristic(state, mode) {
     let h = 0;
+
+    const present = new Map();
+    for (const b of state) {
+      const seenInBottle = new Set();
+      for (const c of b) seenInBottle.add(c);
+      for (const c of seenInBottle) present.set(c, (present.get(c) || 0) + 1);
+    }
+
     for (const b of state) {
       if (b.length === 0) continue;
+      if (b.length === CAP && isUniform(b)) continue;
 
-      // if already solved bottle => 0
-      if (b.length === CAP) {
-        let uniform = true;
-        for (let i = 1; i < CAP; i++) if (b[i] !== b[0]) { uniform = false; break; }
-        if (uniform) continue;
-      }
-
-      // Count color segments bottom->top
       let seg = 1;
       for (let i = 1; i < b.length; i++) if (b[i] !== b[i-1]) seg++;
+      h += (seg - 1) * 2;
 
-      // More segments => more mixing => more work
-      h += (seg - 1);
-
-      // Small extra penalty for partially-filled mixed bottles
       if (b.length < CAP) h += 1;
+
+      const tr = topRun(b);
+      if (tr) {
+        if (tr.run === 3) h -= 2;
+        else if (tr.run === 2) h -= 1;
+      }
     }
-    return h;
+
+    for (const [, k] of present.entries()) {
+      if (k > 1) h += (k - 1);
+    }
+
+    const w = (mode === "fast") ? 1.4 : 1.0;
+    return Math.max(0, Math.floor(h * w));
   }
 
-  function aStarSolve(startState, maxExpansions = 1200000) {
-    const startKey = encodeState(startState);
+  // ---------- Move generation with symmetry reduction ----------
+  function generateMoves(state, mode, lastMove) {
+    const n = state.length;
+    const moves = [];
 
-    // best known g (moves) for each state
+    const dstRep = new Set(); // (dstKey + "|" + srcTop)
+    const emptyIndex = state.findIndex(b => b.length === 0);
+
+    for (let i = 0; i < n; i++) {
+      const src = state[i];
+      if (src.length === 0) continue;
+
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        if (lastMove && lastMove.from === j && lastMove.to === i) continue;
+
+        let dst = state[j];
+        if (dst.length === 0 && emptyIndex !== -1 && j !== emptyIndex) continue;
+
+        if (!canPour(src, dst)) continue;
+        if (!usefulMovePrune(src, dst, mode)) continue;
+
+        const srcTop = src[src.length - 1];
+        const sig = bottleKey(dst) + "|" + srcTop;
+        if (dstRep.has(sig)) continue;
+        dstRep.add(sig);
+
+        const res = doPour(src, dst);
+
+        if (mode === "fast" && dst.length === 0 && res.amt === 1) continue;
+
+        moves.push({ from: i, to: j, amt: res.amt, color: res.color });
+      }
+    }
+    return moves;
+  }
+
+  function applyMove(state, move) {
+    const next = cloneState(state);
+    const res = doPour(next[move.from], next[move.to]);
+    next[move.from] = res.newSrc;
+    next[move.to] = res.newDst;
+    return { next, poured: res };
+  }
+
+  function aStarSolve(startState, mode) {
+    const maxExp = (mode === "fast") ? 1400000 : 2200000;
+
+    const startCKey = canonicalKey(startState);
+
     const bestG = new Map();
-    bestG.set(startKey, 0);
+    bestG.set(startCKey, 0);
 
-    // parent pointers for reconstruction
     const parent = new Map();
-    parent.set(startKey, null);
+    parent.set(startCKey, null);
 
     const open = new MinHeap();
-    open.push({ key: startKey, state: startState, g: 0, f: heuristic(startState) });
+    open.push({ ckey: startCKey, state: startState, g: 0, f: heuristic(startState, mode) });
 
     let expanded = 0;
 
@@ -435,65 +478,47 @@ const CAP = 4;
       const node = open.pop();
       if (!node) break;
 
-      // Skip outdated heap entries
-      const knownG = bestG.get(node.key);
+      const knownG = bestG.get(node.ckey);
       if (knownG !== node.g) continue;
 
       expanded++;
       if (expanded % 5000 === 0) {
-        el("status").textContent = `Searching (A*)... expanded ${expanded.toLocaleString()} states`;
+        el("status").textContent = `Searching (A* ${mode}). expanded ${expanded.toLocaleString()} states`;
       }
-      if (expanded > maxExpansions) {
-        return { ok:false, reason:`State limit reached (${maxExpansions.toLocaleString()}).`, explored: expanded };
+      if (expanded > maxExp) {
+        return { ok:false, reason:`State limit reached (${maxExp.toLocaleString()}).`, explored: expanded };
       }
 
       if (isSolved(node.state)) {
-        // reconstruct moves
         const moves = [];
-        let k = node.key;
+        let k = node.ckey;
         while (parent.get(k) !== null) {
           const rec = parent.get(k);
           moves.push(rec.move);
-          k = rec.prevKey;
+          k = rec.prevCKey;
         }
         moves.reverse();
         return { ok:true, moves, explored: expanded };
       }
 
-      const n = node.state.length;
-      const lastRec = parent.get(node.key);
+      const lastRec = parent.get(node.ckey);
       const lastMove = lastRec ? lastRec.move : null;
 
-      for (let i = 0; i < n; i++) {
-        const src = node.state[i];
-        if (src.length === 0) continue;
+      const moves = generateMoves(node.state, mode, lastMove);
 
-        for (let j = 0; j < n; j++) {
-          if (i === j) continue;
-          // avoid immediate undo
-          if (lastMove && lastMove.from === j && lastMove.to === i) continue;
+      for (const mv of moves) {
+        const { next } = applyMove(node.state, mv);
+        const ckey2 = canonicalKey(next);
+        const g2 = node.g + 1;
 
-          const dst = node.state[j];
-          if (!canPour(src, dst)) continue;
-          if (!usefulMovePrune(src, dst)) continue;
+        const prev = bestG.get(ckey2);
+        if (prev !== undefined && prev <= g2) continue;
 
-          const next = cloneState(node.state);
-          const res = doPour(next[i], next[j]);
-          next[i] = res.newSrc;
-          next[j] = res.newDst;
+        bestG.set(ckey2, g2);
+        parent.set(ckey2, { prevCKey: node.ckey, move: mv });
 
-          const key = encodeState(next);
-          const g2 = node.g + 1;
-
-          const prevBest = bestG.get(key);
-          if (prevBest !== undefined && prevBest <= g2) continue;
-
-          bestG.set(key, g2);
-          parent.set(key, { prevKey: node.key, move: { from:i, to:j, amt:res.amt, color:res.color } });
-
-          const f2 = g2 + heuristic(next);
-          open.push({ key, state: next, g: g2, f: f2 });
-        }
+        const f2 = g2 + heuristic(next, mode);
+        open.push({ ckey: ckey2, state: next, g: g2, f: f2 });
       }
     }
 
@@ -554,11 +579,11 @@ const CAP = 4;
     return out;
   }
 
-  function applyMove(state, move) {
+  function applyMoveForPrint(state, mv) {
     const next = cloneState(state);
-    const res = doPour(next[move.from], next[move.to]);
-    next[move.from] = res.newSrc;
-    next[move.to] = res.newDst;
+    const res = doPour(next[mv.from], next[mv.to]);
+    next[mv.from] = res.newSrc;
+    next[mv.to] = res.newDst;
     return next;
   }
 
@@ -592,12 +617,13 @@ const CAP = 4;
       const err = validateInput(bottles);
       if (err) return showError(err);
 
-      el("output").textContent = "Solving with A*...\n";
-      el("status").textContent = "Starting search (A*)...";
+      const mode = el("modeSel").value === "optimal" ? "optimal" : "fast";
+
+      el("output").textContent = `Solving with A* (${mode})...\n`;
+      el("status").textContent = `Starting search (A* ${mode})...`;
       const t0 = performance.now();
 
-      // You can raise/lower this if needed:
-      const result = aStarSolve(bottles, 1200000);
+      const result = aStarSolve(bottles, mode);
 
       const t1 = performance.now();
 
@@ -623,7 +649,7 @@ const CAP = 4;
           ? `${idx+1}. ${m.from+1} → ${m.to+1}`
           : `${idx+1}. ${m.from+1} → ${m.to+1}  (poured ${m.amt} × ${m.color})`;
         text += line + "\n";
-        cur = applyMove(cur, m);
+        cur = applyMoveForPrint(cur, m);
         if (showStates) text += formatState(cur) + "\n";
       });
 
