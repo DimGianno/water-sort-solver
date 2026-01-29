@@ -4,11 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Water Sort Solver</title>
+
   <link rel="stylesheet" href="assets/css/styles.css" />
-  <script src="assets/js/app.js" defer></script>
+  <script defer src="assets/js/app.js"></script>
 </head>
 <body>
-  <h1>Water Sort Solver (manual input → step-by-step solution)</h1>
+  <h1>Water Sort Solver</h1>
 
   <div class="row">
     <div class="card">
@@ -19,28 +20,50 @@
         </div>
       </div>
       <div class="hint">
-        Capacity is always <b>4</b>. Last <b>2 bottles</b> are forced empty (helpers). All other bottles must be full.
+        Capacity is always <b>4</b>. Last <b>2 bottles</b> are forced empty (helpers).
       </div>
       <div class="inline" style="margin-top:10px;">
         <button id="resetBtn">Reset</button>
+        <button id="undoBtn" disabled>Undo last input</button>
       </div>
-      <div id="buildMsg" class="small"></div>
+      <div id="buildMsg" class="small" style="margin-top:8px;"></div>
     </div>
 
-    <div class="card" style="flex:1; min-width: 320px;">
+    <div class="card" style="flex:1; min-width: 360px;">
       <label>Select colors in this level</label>
       <div id="colorChecklist" class="colors"></div>
-
       <div class="hint" id="colorLimitHint"></div>
 
       <div class="divider"></div>
 
       <div class="inline">
         <button id="buildBtn">Build bottles UI</button>
+        <button id="validateBtn">Validate</button>
+        <button id="exportBtn">Export</button>
+        <button id="importBtn">Import</button>
       </div>
+
       <div class="hint">
-        You can select at most <b>(bottles − 2)</b> colors. Each selected color must appear exactly <b>4</b> times.
+        Tip: Click a layer → choose a color from the palette. Click the same layer again to clear it.
       </div>
+
+      <div class="palette-wrap">
+        <span class="pill" id="remainingSummary">Remaining: —</span>
+        <div class="palette" id="palette"></div>
+        <button id="eraserBtn" title="Clear selected layer">Eraser</button>
+      </div>
+
+      <div id="ioArea" style="display:none; margin-top:10px;">
+        <div class="small" style="margin-bottom:6px;">Paste an exported code to import, or copy your export:</div>
+        <textarea id="ioText" placeholder="(export/import code will appear here)"></textarea>
+        <div class="inline" style="margin-top:8px;">
+          <button id="ioApplyBtn" class="btn-primary">Apply</button>
+          <button id="ioCloseBtn">Close</button>
+          <span class="small" id="ioMsg"></span>
+        </div>
+      </div>
+
+      <div id="validationMsg" class="small" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -49,11 +72,11 @@
   <div class="row" style="margin-top: 12px;">
     <div class="card" style="flex:1;">
       <div class="inline">
-        <button id="solveBtn" disabled>Solve</button>
+        <button id="solveBtn" class="btn-primary" disabled>Solve</button>
 
         <div class="inline" style="gap:6px;">
           <label style="margin:0;">Mode</label>
-          <select id="modeSel">
+          <select id="modeSel" style="padding:8px;border-radius:10px;border:1px solid #ccc;">
             <option value="fast" selected>Fast</option>
             <option value="optimal">Optimal-ish</option>
           </select>
@@ -68,6 +91,7 @@
           Only moves (no poured amount)
         </label>
       </div>
+
       <div id="status" class="hint"></div>
       <div id="error" class="warn"></div>
       <div id="success" class="ok"></div>
@@ -78,6 +102,24 @@
     <div class="card" style="flex:1;">
       <label>Solution</label>
       <div id="output" class="output">Build bottles UI, enter colors, then press Solve.</div>
+
+      <!-- Replay UI -->
+      <div id="replay" class="replay">
+        <div class="divider"></div>
+        <div class="inline">
+          <button id="prevStepBtn">⟨ Prev</button>
+          <button id="nextStepBtn">Next ⟩</button>
+          <button id="playBtn">Play</button>
+          <button id="pauseBtn" disabled>Pause</button>
+          <label class="inline" style="gap:6px; margin:0;">
+            Speed
+            <input id="speedRange" type="range" min="0.25" max="4" step="0.25" value="1" />
+            <span class="small" id="speedLabel">1×</span>
+          </label>
+          <span class="pill" id="stepLabel">Step 0/0</span>
+        </div>
+        <div id="replayGrid" class="replay-grid"></div>
+      </div>
     </div>
   </div>
 </body>
