@@ -17,7 +17,7 @@
       <div class="row">
         <div>
           <label>Number of bottles (max 14)</label>
-          <input id="numBottles" type="number" min="3" max="14" value="11" />
+          <input id="numBottles" type="number" min="3" max="14" value="11">
         </div>
       </div>
 
@@ -26,7 +26,6 @@
       </div>
 
       <div class="inline" style="margin-top:10px;">
-        <button id="buildBtn">Build bottles UI</button>
         <button id="resetBtn">Reset</button>
       </div>
 
@@ -34,11 +33,19 @@
     </div>
 
     <div class="card" style="flex:1; min-width: 320px;">
-      <label>Select colors in this level (each must appear exactly 4 times)</label>
+      <label>Select colors in this level</label>
       <div id="colorChecklist" class="colors"></div>
 
+      <div class="hint" id="colorLimitHint"></div>
+
+      <div class="divider"></div>
+
+      <div class="inline">
+        <button id="buildBtn">Build bottles UI</button>
+      </div>
+
       <div class="hint">
-        Tip: Select only colors that exist in the level. Dropdowns will show how many layers are left.
+        You can select at most <b>(bottles − 2)</b> colors. Each selected color must appear exactly <b>4</b> times.
       </div>
     </div>
   </div>
@@ -48,15 +55,15 @@
   <div class="row" style="margin-top: 12px;">
     <div class="card" style="flex:1;">
       <div class="inline">
-        <button id="solveBtn">Solve</button>
+        <button id="solveBtn" disabled>Solve</button>
 
         <label class="inline" style="gap:6px; margin:0;">
-          <input id="showStates" type="checkbox" checked />
+          <input id="showStates" type="checkbox" checked>
           Show state after each move
         </label>
 
         <label class="inline" style="gap:6px; margin:0;">
-          <input id="shortMoves" type="checkbox" />
+          <input id="shortMoves" type="checkbox">
           Only moves (no poured amount)
         </label>
       </div>
