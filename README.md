@@ -24,3 +24,8 @@ python -m http.server 8000
 1. Open history folder
 2. Download singlefile to your computer
 3. Open in browser
+
+### To Do List
+1. Image to code
+2. Dark mode
+3. UI changes
