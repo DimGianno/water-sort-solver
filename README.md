@@ -3,7 +3,7 @@
 A browser-based Water Sort puzzle solver with a simple UI to input a level and generate a step-by-step solution.
 
 ## Features
-- Build bottles UI by choosing number of bottles + capacity
+- Build bottles UI by choosing number of bottles
 - Manual level input (top → bottom)
 - Solver outputs:
   - move list (from → to)
