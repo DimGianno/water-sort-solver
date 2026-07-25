@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Water Sort Solver</title>
+  <link rel="stylesheet" href="assets\css\styles.css" />
+  <script type="module" defer src="assets\js\app.js"></script>
+  </head>
+<body>
+  <!-- Top bar of the app -->
+  <header class="topbar">
+    <!-- App title -->
+    <h1 class="brand">Water Sort Solver</h1>
+
+    <!-- Import/Export button -->
+    <button id="ioBtn" type="button">Import/Export</button>
+
+    <!-- Screenshot import button -->
+    <button id="shotBtn" type="button">Import Screenshot</button>
+
+    <!-- Reset button -->
+    <button id="resetBtn" type="button">Reset</button>
+
+    <!-- Theme toggle button (JS looks for id="themeBtn") -->
+    <button id="themeBtn" class="icon-btn" type="button" aria-label="Toggle theme" aria-pressed="false">
+      🌙
+    </button>
+  </header>
+  <main class="page"> 
+    <!-- STEP 1: Setup (visible first) -->
+    <section class="card" id="setupCard">
+      <h2 class="cardTitle">Step 1 — Setup</h2>
+      <div class="row">
+        <div class="field">
+          <label for="numBottles">Number of bottles</label>
+          <input id="numBottles" type="number" min="4" max="14" value="14" />
+          <div class="hint" id="numHint">Choose between 4 and 14.</div>
+        </div>
+      </div>
+
+      <!--Status / message area.-->
+      <div class="small" id="setupMsg"></div>
+      <button id="setupNextBtn" disabled>You can select colors now!</button>
+    </section>
+    <!-- STEP 2: Colors (hidden at first) -->
+    <section class="card" id="colorsCard" hidden>  
+      <h2 class="cardTitle">Step 2 — Colors</h2>
+
+      <div class="hint" id="colorsHint">
+        Select exactly the required number of colors.
+      </div>
+
+      <button id="colorsSelectAllBtn" type="button" hidden>Select all</button>
+
+      <div id="colorChecklist" class="colors"></div>
+
+      <div class="small" id="colorsMsg"></div>
+
+      <!-- Back / Next -->
+      <div class="actions spread">
+        <button id="colorsBackBtn" type="button">← Back to Setup</button>
+        <button id="colorsNextBtn" type="button" disabled>Continue to build! →</button>
+      </div>
+    </section>
+    <!-- STEP 3: Build placeholder (hidden for now) -->
+    <section class="card" id="buildCard" hidden>
+      <h2 class="cardTitle">Step 3 — Build bottles</h2>
+
+      <div class="hint" id="buildHint">
+        Fill the first bottles. The last 2 bottles are helpers and must stay empty.
+      </div>
+
+      <!-- Where bottles will be rendered -->
+      <div id="bottleGrid" class="bottleGrid"></div>
+
+      <!-- Build validation message -->
+      <div class="small" id="buildMsg"></div>
+
+      <!-- Popover palette (JS positions it near the clicked layer) -->
+      <div id="palettePopover" class="palettePopover" hidden></div>
+
+      <div class="actions spread">
+        <button id="buildBackBtn" type="button">← Back</button>
+        <button id="buildNextBtn" type="button" disabled>Continue →</button>
+      </div>
+    </section>
+    <!-- STEP 4: Solve placeholder (hidden for now) -->
+    <section class="card" id="solveCard" hidden>
+      <h2 class="cardTitle">Step 4 — Solve and Replay</h2>
+
+      <!-- -----------  SOLVER UI ----------- -->
+      <div class="card" style="margin-top:12px;">
+        <div class="hint" id="solveSummary"></div>
+
+        <div class="field" style="gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <label class="inline" style="gap:6px; margin:0;">
+            Mode
+            <select id="solveModeSel">
+              <option value="fast" selected>Fast</option>
+              <option value="optimal">Optimal-ish</option>
+            </select>
+          </label>
+
+          <label class="inline" style="gap:6px; margin:0;">
+            <input id="solveShowStates" type="checkbox">
+            Show state after each move
+          </label>
+
+          <label class="inline" style="gap:6px; margin:0;">
+            <input id="solveShortMoves" type="checkbox" checked>
+            Only moves
+          </label>
+        </div>
+        <div class="actions spread">
+          <button id="solveBackBtn" type="button">← Back</button>
+          <button id="solveRunBtn" type="button">Solve</button>
+        </div>
+
+        <div id="solveStatus" class="hint" style="margin-top:8px;"></div>
+        <div id="solveError" class="warn"></div>
+        <div id="solveSuccess" class="ok"></div>
+
+        <pre id="solveOutput" class="output" style="margin-top:10px;">Press Solve.</pre>
+      </div>
+
+      <!-- -----------  REPLAY UI ----------- -->
+      <div class="card" style="margin-top:12px;">
+        <label>Replay</label>
+
+        <div class="inline" style="gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <button id="replayPrevBtn" type="button">⟨ Prev</button>
+          <button id="replayNextBtn" type="button">Next ⟩</button>
+          <button id="replayPlayBtn" type="button">Play</button>
+          <button id="replayPauseBtn" type="button" disabled>Pause</button>
+        </div>
+        <label class="inline" style="gap:6px; margin:0;">
+          Speed
+          <input id="replaySpeed" type="range" min="0.25" max="4" step="0.25" value="1" />
+          <span class="small" id="replaySpeedLabel">1×</span>
+        </label>
+        <span class="small" id="replayStepLabel">Step 0/0</span>
+        <div id="replayGrid" class="replayGrid" style="margin-top:10px;"></div>
+        <div id="replayHint" class="hint" style="margin-top:8px;">Solve a level to enable replay.</div>
+      </div>
+      <!-- -----------  END OF SOLVER AND REPLAY ---------  -->
+    </section>
+  </main>
+
+<!-- Modal for Import/Export -->
+<div id="ioOverlay" class="overlay" hidden>
+  <div id="ioModal" class="modal card" role="dialog" aria-modal="true" aria-labelledby="ioTitle">
+    <h2 class="cardTitle" id="ioTitle">Import / Export</h2>
+
+    <div class="hint">
+      Paste an exported JSON build here, or export your current build.
+    </div>
+
+    <textarea id="ioText" class="ioText" spellcheck="false"></textarea>
+
+    <div class="small" id="ioMsg"></div>
+
+    <div class="actions spread">
+      <button id="ioCloseBtn" type="button">Close</button>
+      <button id="ioExportBtn" type="button">Export current</button>
+      <button id="ioImportBtn" type="button">Import</button>
+    </div>
+  </div>
+</div>
+<!-- Modal for Screenshot Import -->
+<div id="shotOverlay" class="overlay" hidden>
+  <div id="shotModal" class="modal card" role="dialog" aria-modal="true" aria-labelledby="shotTitle">
+    <h2 class="cardTitle" id="shotTitle">Import Screenshot</h2>
+
+    <div class="hint">
+      Works offline. Choose a screenshot and we’ll prepare it for automatic import.
+    </div>
+
+    <input id="shotFile" type="file" accept="image/*" />
+
+    <div class="small" id="shotMsg"></div>
+
+    <div id="shotStage" class="shotStage" hidden>
+      <canvas id="shotCanvas" class="shotCanvas" hidden></canvas>
+      <img id="shotImg" class="shotPreview" alt="Screenshot preview" hidden />
+    </div>
+
+    <div id="shotControls" class="shotControls" hidden>
+      <label> Bottles
+        <input id="shotBottles" type="number" min="4" max="14" value="14">
+      </label>
+      <label> X
+        <input id="shotX" type="number" step="1" value="0">
+      </label>
+      <label> Y
+        <input id="shotY" type="number" step="1" value="0">
+      </label>
+      <label> Bottle W
+        <input id="shotW" type="number" step="1" value="60">
+      </label>
+      <label> Bottle H
+        <input id="shotH" type="number" step="1" value="220">
+      </label>
+      <label> Gap X
+        <input id="shotGapX" type="number" step="1" value="10">
+      </label>
+      <label> Gap Y
+        <input id="shotGapY" type="number" step="1" value="20">
+      </label>
+      <label> Gap X (Row 2)
+        <input id="shotGapX2" type="number" step="1" value="10">
+      </label>
+      <div class="shotCtrlHint small">
+        Drag the grid on the image to move it. Use the numbers to resize.
+      </div>
+    </div>
+
+    <div class="actions spread">
+      <button id="shotCloseBtn" type="button">Close</button>
+      <button id="shotClearBtn" type="button" disabled>Clear</button>
+      <button id="shotImportBtn" type="button" disabled>Import to Builder</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

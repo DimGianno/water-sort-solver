@@ -1,7 +1,7 @@
 export function createImportExport(ctx) {
   const { CAP, DEFAULT_COLORS, state, el } = ctx;
   const { showError, selectedColors, updateSelectAllVisibility, updateColorLimitUI, buildBottlesUI } = ctx;
-  const { closeAllPopovers, renderAllLayers, runContinuousValidation, updateSolveEnabled } = ctx;
+  const { closeAllPopovers, renderAllLayers, renderPalette, runContinuousValidation, updateSolveEnabled } = ctx;
 
   function toExportPayload() {
     const n = parseInt(el("numBottles").value, 10);
@@ -46,14 +46,14 @@ export function createImportExport(ctx) {
   }
 
   function showIO(mode) {
-    el("ioArea").style.display = "block";
+    el("ioArea").hidden = false;
     el("ioMsg").textContent = "";
     el("ioText").value = "";
     el("ioApplyBtn").dataset.mode = mode;
   }
 
   function hideIO() {
-    el("ioArea").style.display = "none";
+    el("ioArea").hidden = true;
     el("ioMsg").textContent = "";
     el("ioText").value = "";
   }
@@ -108,9 +108,9 @@ export function createImportExport(ctx) {
     state.openPopoverBottle = null;
     closeAllPopovers();
     state.inputHistory = [];
-    el("undoBtn").disabled = true;
 
     renderAllLayers();
+    renderPalette();
     runContinuousValidation();
     updateSolveEnabled();
   }

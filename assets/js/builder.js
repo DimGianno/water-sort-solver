@@ -19,47 +19,44 @@ export function createBuilder(ctx) {
   function updateColorLimitUI() {
     const max = colorMaxAllowed();
     const chosen = selectedColors().length;
-    el("colorLimitHint").textContent = `Selected ${chosen}/${max} colors.`;
+    el("colorLimitHint").textContent = `${chosen}/${max} selected`;
 
     const checkboxes = Array.from(el("colorChecklist").querySelectorAll('input[type="checkbox"]'));
     const lock = chosen >= max;
-    for (const cb of checkboxes) cb.disabled = !cb.checked && lock;
+    for (const checkbox of checkboxes) checkbox.disabled = !checkbox.checked && lock;
   }
 
   function buildChecklist() {
     const box = el("colorChecklist");
     box.innerHTML = "";
-    DEFAULT_COLORS.forEach((c) => {
-      const lab = document.createElement("label");
 
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.value = c;
-      cb.addEventListener("change", () => {
-        const max = colorMaxAllowed();
-        const chosen = selectedColors().length;
-        if (chosen > max) cb.checked = false;
-
+    DEFAULT_COLORS.forEach((color) => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = color;
+      checkbox.addEventListener("change", () => {
+        if (selectedColors().length > colorMaxAllowed()) checkbox.checked = false;
         updateColorLimitUI();
+
         if (state.bottleLayers.length) {
+          if (state.activeColor && !selectedColors().includes(state.activeColor)) state.activeColor = null;
           renderAllLayers();
-          renderPopover(state.openPopoverBottle);
+          renderPalette();
           runContinuousValidation();
           updateSolveEnabled();
         }
       });
 
-      const sw = document.createElement("span");
-      sw.className = "swatch";
-      sw.style.background = COLOR_PALETTE[c] || "#ccc";
+      const swatch = document.createElement("span");
+      swatch.className = "swatch";
+      swatch.style.background = COLOR_PALETTE[color] || "#ccc";
 
       const name = document.createElement("span");
-      name.textContent = c;
+      name.textContent = color;
 
-      lab.appendChild(cb);
-      lab.appendChild(sw);
-      lab.appendChild(name);
-      box.appendChild(lab);
+      label.append(checkbox, swatch, name);
+      box.appendChild(label);
     });
 
     updateSelectAllVisibility();
@@ -67,18 +64,18 @@ export function createBuilder(ctx) {
   }
 
   function selectAllColors() {
-    const n = parseInt(el("numBottles").value, 10);
-    if (n !== 14) return;
+    if (parseInt(el("numBottles").value, 10) !== 14) return;
+
     el("colorChecklist")
       .querySelectorAll('input[type="checkbox"]')
-      .forEach((cb) => {
-        cb.checked = true;
+      .forEach((checkbox) => {
+        checkbox.checked = true;
       });
-    updateColorLimitUI();
 
+    updateColorLimitUI();
     if (state.bottleLayers.length) {
       renderAllLayers();
-      renderPopover(state.openPopoverBottle);
+      renderPalette();
       runContinuousValidation();
       updateSolveEnabled();
     }
@@ -92,264 +89,273 @@ export function createBuilder(ctx) {
     showSuccess("");
     el("validationMsg").textContent = "";
 
-    if (!Number.isFinite(n) || n < 4) return showError("Number of bottles must be >= 4.");
-    if (n > 14) return showError("Max bottles is 14.");
+    if (!Number.isFinite(n) || n < 4) return showError("Number of bottles must be at least 4.");
+    if (n > 14) return showError("The maximum is 14 bottles.");
 
     const maxColors = n - 2;
-    if (colors.length === 0) return showError("Select at least 1 color.");
-    if (colors.length > maxColors) return showError(`Too many colors selected. Max is ${maxColors}.`);
+    if (colors.length !== maxColors) return showError(`Select exactly ${maxColors} colors.`);
 
-    state.bottleLayers = Array.from({ length: n }, () => Array.from({ length: CAP }, () => ""));
-    state.selectedLayer = null;
-    state.inputHistory = [];
+    state.bottleLayers = Array.from({ length: n }, () => Array(CAP).fill(""));
+    state.selectedLayer = { b: 0, l: 0 };
     state.openPopoverBottle = null;
+    state.activeColor = null;
+    state.fillMode = el("fillModeColor").checked ? "color" : "layer";
     state.lastSolution = null;
-    el("undoBtn").disabled = true;
     hideReplay();
 
     const area = el("bottleArea");
     area.innerHTML = "";
+    area.className = "board";
 
-    for (let i = 0; i < n; i++) {
-      const isHelperEmpty = i >= n - 2;
+    const rows = [document.createElement("div"), document.createElement("div")];
+    rows.forEach((row) => {
+      row.className = "board-row";
+      area.appendChild(row);
+    });
 
-      const card = document.createElement("div");
-      card.className = "bottle";
-      card.dataset.bottle = String(i);
+    const split = Math.ceil(n / 2);
+    for (let bottleIndex = 0; bottleIndex < n; bottleIndex++) {
+      const isHelper = bottleIndex >= n - 2;
+      const bottle = document.createElement("div");
+      bottle.className = `bottle${isHelper ? " helper-bottle" : ""}`;
+      bottle.dataset.bottle = String(bottleIndex);
 
-      const title = document.createElement("h3");
-      title.innerHTML = `<span>Bottle ${i + 1}</span><span class="small">${isHelperEmpty ? "EMPTY" : ""}</span>`;
-      card.appendChild(title);
+      const title = document.createElement("div");
+      title.className = "bottle-title";
+      title.innerHTML = `<span>${bottleIndex + 1}</span>${isHelper ? '<span class="helper-label">helper</span>' : ""}`;
 
       const layers = document.createElement("div");
       layers.className = "layers";
 
-      for (let l = 0; l < CAP; l++) {
-        const layer = document.createElement("div");
+      for (let layerIndex = 0; layerIndex < CAP; layerIndex++) {
+        const layer = document.createElement("button");
+        layer.type = "button";
         layer.className = "layer empty";
-        layer.dataset.bottle = String(i);
-        layer.dataset.layer = String(l);
-        layer.innerHTML = `<span class="tag">Tap to set</span><span class="small">${l === 0 ? "TOP" : l === 3 ? "BOTTOM" : ""}</span>`;
+        layer.dataset.bottle = String(bottleIndex);
+        layer.dataset.layer = String(layerIndex);
+        layer.setAttribute("aria-label", `Bottle ${bottleIndex + 1}, layer ${layerIndex + 1}, empty`);
 
-        if (isHelperEmpty) {
-          layer.style.cursor = "not-allowed";
-          layer.style.opacity = "0.55";
-          layer.innerHTML = `<span class="tag">Helper</span><span class="small">${l === 0 ? "TOP" : l === 3 ? "BOTTOM" : ""}</span>`;
+        if (isHelper) {
+          layer.disabled = true;
         } else {
-          layer.addEventListener("click", () => onLayerClick(i, l));
+          layer.addEventListener("click", () => onLayerClick(bottleIndex, layerIndex));
         }
-
         layers.appendChild(layer);
       }
 
-      const pop = document.createElement("div");
-      pop.className = "popover";
-      pop.id = `popover-${i}`;
-
-      card.appendChild(layers);
-      card.appendChild(pop);
-
-      const hint = document.createElement("div");
-      hint.className = "hint";
-      hint.textContent = isHelperEmpty ? "Helper bottle (forced empty)" : "Tap a layer: palette opens in this bottle.";
-      card.appendChild(hint);
-
-      area.appendChild(card);
+      bottle.append(title, layers);
+      rows[bottleIndex < split ? 0 : 1].appendChild(bottle);
     }
 
-    el("buildMsg").textContent = `Built ${n} bottles (capacity fixed to 4).`;
-    el("status").textContent = "Fill all non-helper bottles. Solve unlocks when input is valid.";
+    el("fillToolbar").hidden = false;
+    el("buildMsg").textContent = `${n} bottles ready`;
+    el("status").textContent = "Fill every non-helper bottle to unlock the solver.";
     el("output").textContent = "Ready.";
 
     renderAllLayers();
+    renderPalette();
     runContinuousValidation();
     updateSolveEnabled();
   }
 
-  function onLayerClick(b, l) {
-    const n = state.bottleLayers.length;
-    if (!n) return;
-    if (b >= n - 2) return;
+  function onLayerClick(bottleIndex, layerIndex) {
+    const editableBottles = state.bottleLayers.length - 2;
+    if (!state.bottleLayers.length || bottleIndex >= editableBottles) return;
 
-    if (state.selectedLayer && state.selectedLayer.b === b && state.selectedLayer.l === l) {
-      setLayerColor(b, l, "", true);
-      state.selectedLayer = null;
-      state.openPopoverBottle = null;
-      closeAllPopovers();
-      renderAllLayers();
-      runContinuousValidation();
-      updateSolveEnabled();
-      return;
+    state.selectedLayer = { b: bottleIndex, l: layerIndex };
+
+    if (state.fillMode === "color" && state.activeColor) {
+      const changed = setLayerColor(bottleIndex, layerIndex, state.activeColor);
+      if (changed && remainingFor(state.activeColor) === 0) state.activeColor = null;
     }
 
-    state.selectedLayer = { b, l };
-    state.openPopoverBottle = b;
-    closeAllPopovers();
-    openPopover(b);
     renderAllLayers();
-    renderPopover(b);
+    renderPalette();
+    runContinuousValidation();
+    updateSolveEnabled();
   }
 
-  function openPopover(b) {
-    const pop = el(`popover-${b}`);
-    if (!pop) return;
-    pop.classList.add("open");
+  function setFillMode(mode) {
+    state.fillMode = mode === "color" ? "color" : "layer";
+    state.activeColor = null;
+
+    if (state.fillMode === "layer" && state.bottleLayers.length && !state.selectedLayer) {
+      state.selectedLayer = findNextEmptyLayer(-1, CAP - 1);
+    }
+
+    renderAllLayers();
+    renderPalette();
   }
 
-  function closeAllPopovers() {
-    const area = el("bottleArea");
-    area.querySelectorAll(".popover").forEach((p) => p.classList.remove("open"));
-  }
+  function onPaletteColor(color) {
+    if (remainingFor(color) <= 0) return;
 
-  function renderPopover(b) {
-    if (b === null || b === undefined) return;
-    const pop = el(`popover-${b}`);
-    if (!pop) return;
-
-    const colors = selectedColors();
-    const counts = computeUsedCounts();
-
-    if (!state.selectedLayer || state.selectedLayer.b !== b) {
-      pop.innerHTML = "";
+    if (state.fillMode === "color") {
+      state.activeColor = state.activeColor === color ? null : color;
+      renderPalette();
       return;
     }
 
-    pop.innerHTML = "";
+    if (!state.selectedLayer) state.selectedLayer = findNextEmptyLayer(-1, CAP - 1);
+    if (!state.selectedLayer) return;
 
-    const top = document.createElement("div");
-    top.className = "popover-top";
+    const { b, l } = state.selectedLayer;
+    if (!setLayerColor(b, l, color)) return;
+    state.selectedLayer = findNextEmptyLayer(b, l);
 
-    const left = document.createElement("div");
-    left.className = "small";
-    left.textContent = `Bottle ${b + 1} • Layer ${state.selectedLayer.l + 1}`;
-
-    const actions = document.createElement("div");
-    actions.className = "popover-actions";
-
-    const close = document.createElement("button");
-    close.textContent = "Close";
-    close.addEventListener("click", () => {
-      state.selectedLayer = null;
-      state.openPopoverBottle = null;
-      closeAllPopovers();
-      renderAllLayers();
-    });
-
-    actions.appendChild(close);
-    top.appendChild(left);
-    top.appendChild(actions);
-    pop.appendChild(top);
-
-    const grid = document.createElement("div");
-    grid.className = "palette-grid";
-
-    for (const c of colors) {
-      const remaining = CAP - (counts[c] || 0);
-      if (remaining <= 0) continue;
-
-      const box = document.createElement("div");
-      box.className = "cbox";
-      box.style.background = COLOR_PALETTE[c] || "#ddd";
-
-      const num = document.createElement("div");
-      num.className = "cnum";
-      num.textContent = String(remaining);
-
-      box.appendChild(num);
-      box.addEventListener("click", () => {
-        setLayerColor(state.selectedLayer.b, state.selectedLayer.l, c, true);
-
-        const next = findNextEmptyLayerInBottle(state.selectedLayer.b, state.selectedLayer.l);
-        if (next !== null) {
-          state.selectedLayer = { b: state.selectedLayer.b, l: next };
-          state.openPopoverBottle = state.selectedLayer.b;
-          renderAllLayers();
-          renderPopover(state.selectedLayer.b);
-        } else {
-          renderAllLayers();
-          renderPopover(state.selectedLayer.b);
-        }
-        runContinuousValidation();
-        updateSolveEnabled();
-      });
-
-      grid.appendChild(box);
-    }
-
-    pop.appendChild(grid);
+    renderAllLayers();
+    renderPalette();
+    runContinuousValidation();
+    updateSolveEnabled();
   }
 
-  function findNextEmptyLayerInBottle(b, startL) {
-    for (let l = startL + 1; l < CAP; l++) if (!state.bottleLayers[b][l]) return l;
-    for (let l = 0; l <= startL; l++) if (!state.bottleLayers[b][l]) return l;
+  function clearSelectedLayer() {
+    if (!state.selectedLayer) return;
+    const { b, l } = state.selectedLayer;
+    if (!state.bottleLayers[b][l]) return;
+
+    setLayerColor(b, l, "");
+    renderAllLayers();
+    renderPalette();
+    runContinuousValidation();
+    updateSolveEnabled();
+  }
+
+  function remainingFor(color) {
+    const counts = computeUsedCounts();
+    return CAP - (counts[color] || 0);
+  }
+
+  function findNextEmptyLayer(bottleIndex, layerIndex) {
+    const editableBottles = Math.max(0, state.bottleLayers.length - 2);
+    const totalLayers = editableBottles * CAP;
+    if (!totalLayers) return null;
+
+    const start = bottleIndex < 0 ? -1 : bottleIndex * CAP + layerIndex;
+    for (let offset = 1; offset <= totalLayers; offset++) {
+      const flatIndex = (start + offset + totalLayers) % totalLayers;
+      const b = Math.floor(flatIndex / CAP);
+      const l = flatIndex % CAP;
+      if (!state.bottleLayers[b][l]) return { b, l };
+    }
     return null;
   }
 
-  function setLayerColor(b, l, color, pushHistory = false) {
-    const prev = state.bottleLayers[b][l];
-    if (prev === color) return;
+  function setLayerColor(bottleIndex, layerIndex, color) {
+    const previous = state.bottleLayers[bottleIndex][layerIndex];
+    if (previous === color) return false;
 
     if (color) {
-      const colors = selectedColors();
-      if (!colors.includes(color)) return;
-
-      const counts = computeUsedCounts();
-      const remaining = CAP - (counts[color] || 0);
-      if (remaining <= 0) return;
+      if (!selectedColors().includes(color)) return false;
+      if (remainingFor(color) <= 0) return false;
     }
 
-    state.bottleLayers[b][l] = color;
-
-    if (pushHistory) {
-      state.inputHistory.push({ b, l, prev, next: color });
-      el("undoBtn").disabled = state.inputHistory.length === 0;
-    }
-
-    renderAllLayers();
-    if (state.openPopoverBottle !== null) renderPopover(state.openPopoverBottle);
-  }
-
-  function undoLastInput() {
-    const rec = state.inputHistory.pop();
-    if (!rec) return;
-    state.bottleLayers[rec.b][rec.l] = rec.prev;
-    el("undoBtn").disabled = state.inputHistory.length === 0;
-
-    renderAllLayers();
-    runContinuousValidation();
-    updateSolveEnabled();
-    if (state.openPopoverBottle !== null) renderPopover(state.openPopoverBottle);
+    state.bottleLayers[bottleIndex][layerIndex] = color;
+    return true;
   }
 
   function renderAllLayers() {
     const area = el("bottleArea");
     if (!area || !state.bottleLayers.length) return;
 
-    area.querySelectorAll(".layer").forEach((div) => {
-      const b = parseInt(div.dataset.bottle, 10);
-      const l = parseInt(div.dataset.layer, 10);
-      if (b >= state.bottleLayers.length - 2) return;
-
+    area.querySelectorAll(".layer").forEach((layer) => {
+      const b = parseInt(layer.dataset.bottle, 10);
+      const l = parseInt(layer.dataset.layer, 10);
       const color = state.bottleLayers[b][l] || "";
-      div.classList.toggle(
-        "selected",
-        !!state.selectedLayer && state.selectedLayer.b === b && state.selectedLayer.l === l
-      );
+      const isHelper = b >= state.bottleLayers.length - 2;
 
-      if (!color) {
-        div.classList.add("empty");
-        div.style.backgroundColor = "#fff";
-        div.style.color = "#999";
-        div.querySelector(".tag").textContent = "Tap to set";
-      } else {
-        div.classList.remove("empty");
-        div.style.backgroundColor = COLOR_PALETTE[color] || "#ddd";
-        div.style.color =
-          color === "Yellow" || color === "Light Blue" || color === "Light Green" ? "#111" : "#fff";
-        div.querySelector(".tag").textContent = color;
-      }
+      layer.classList.toggle(
+        "selected",
+        !isHelper && !!state.selectedLayer && state.selectedLayer.b === b && state.selectedLayer.l === l
+      );
+      layer.classList.toggle("empty", !color);
+      layer.style.backgroundColor = color ? COLOR_PALETTE[color] || "#ddd" : "";
+      layer.setAttribute(
+        "aria-label",
+        `Bottle ${b + 1}, layer ${l + 1}, ${isHelper ? "helper" : color || "empty"}`
+      );
     });
   }
+
+  function renderPalette() {
+    const palette = el("fillPalette");
+    if (!palette) return;
+    palette.innerHTML = "";
+
+    if (!state.bottleLayers.length) return;
+
+    const colors = selectedColors();
+    const counts = computeUsedCounts();
+    if (state.activeColor && CAP - (counts[state.activeColor] || 0) <= 0) state.activeColor = null;
+
+    const selected = state.selectedLayer;
+    const selectedValue = selected ? state.bottleLayers[selected.b][selected.l] : "";
+    el("clearLayerBtn").disabled = !selectedValue;
+
+    if (state.fillMode === "color") {
+      el("paletteTitle").textContent = state.activeColor
+        ? `${state.activeColor} selected - tap layers`
+        : "Choose a color, then tap layers";
+    } else {
+      el("paletteTitle").textContent = selected
+        ? `Bottle ${selected.b + 1} - layer ${selected.l + 1}`
+        : "All layers are filled";
+    }
+
+    for (const color of colors) {
+      const remaining = CAP - (counts[color] || 0);
+      if (remaining <= 0) continue;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `palette-color${state.activeColor === color ? " active" : ""}`;
+      button.setAttribute("aria-label", `${color}, ${remaining} remaining`);
+      button.setAttribute("aria-pressed", String(state.activeColor === color));
+
+      const swatch = document.createElement("span");
+      swatch.className = "palette-swatch";
+      swatch.style.background = COLOR_PALETTE[color] || "#ddd";
+
+      const name = document.createElement("span");
+      name.className = "palette-name";
+      name.textContent = color;
+
+      const counter = document.createElement("span");
+      counter.className = "palette-count";
+      counter.textContent = String(remaining);
+
+      button.append(swatch, name, counter);
+      button.addEventListener("click", () => onPaletteColor(color));
+      palette.appendChild(button);
+    }
+
+    if (!palette.children.length) {
+      const complete = document.createElement("span");
+      complete.className = "palette-complete";
+      complete.textContent = "All color pieces are placed.";
+      palette.appendChild(complete);
+    }
+  }
+
+  function closeAllPopovers() {
+    state.openPopoverBottle = null;
+  }
+
+  function openPopover() {
+    renderPalette();
+  }
+
+  function renderPopover() {
+    renderPalette();
+  }
+
+  el("fillModeLayer").addEventListener("change", () => {
+    if (el("fillModeLayer").checked) setFillMode("layer");
+  });
+  el("fillModeColor").addEventListener("change", () => {
+    if (el("fillModeColor").checked) setFillMode("color");
+  });
+  el("clearLayerBtn").addEventListener("click", clearSelectedLayer);
 
   return {
     updateSelectAllVisibility,
@@ -362,7 +368,7 @@ export function createBuilder(ctx) {
     closeAllPopovers,
     renderPopover,
     setLayerColor,
-    undoLastInput,
     renderAllLayers,
+    renderPalette,
   };
 }
