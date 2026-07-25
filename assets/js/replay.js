@@ -3,6 +3,7 @@ export function createReplay(ctx) {
 
   function hideReplay() {
     el("replay").style.display = "none";
+    el("replayPlaceholder").style.display = "flex";
     if (state.replayTimer) {
       clearInterval(state.replayTimer);
       state.replayTimer = null;
@@ -14,6 +15,7 @@ export function createReplay(ctx) {
     state.lastSolution = solution;
     state.replayIndex = 0;
     el("replay").style.display = "block";
+    el("replayPlaceholder").style.display = "none";
     el("pauseBtn").disabled = true;
     el("playBtn").disabled = false;
     renderReplay();
@@ -41,13 +43,26 @@ export function createReplay(ctx) {
     const grid = el("replayGrid");
     grid.innerHTML = "";
 
+
+    grid.classList.add("board");
+
+    // Fixed 2-row layout (match the builder board): if odd, row 1 gets the extra.
+    const row1 = document.createElement("div");
+    row1.className = "board-row";
+    const row2 = document.createElement("div");
+    row2.className = "board-row";
+    grid.appendChild(row1);
+    grid.appendChild(row2);
+
     const st = states[state.replayIndex];
+    const split = Math.ceil(st.length / 2);
+
     for (let i = 0; i < st.length; i++) {
       const rb = document.createElement("div");
       rb.className = "rbottle" + (i === hlFrom || i === hlTo ? " hl" : "");
       const t = document.createElement("div");
-      t.className = "title";
-      t.innerHTML = `<span>Bottle ${i + 1}</span><span class="small">${i === hlFrom ? "FROM" : i === hlTo ? "TO" : ""}</span>`;
+      t.className = "bottle-title";
+      t.innerHTML = `<span>${i + 1}</span><span class="replay-move">${i === hlFrom ? "from" : i === hlTo ? "to" : ""}</span>`;
       rb.appendChild(t);
 
       const stack = document.createElement("div");
@@ -64,15 +79,19 @@ export function createReplay(ctx) {
         const c = padded[l];
         if (c) seg.style.background = COLOR_PALETTE[c] || "#ddd";
         else {
-          seg.style.background = "#fff";
-          seg.style.borderStyle = "dashed";
+          seg.classList.add("empty");
+          seg.style.background = "";
         }
         stack.appendChild(seg);
       }
 
       rb.appendChild(stack);
-      grid.appendChild(rb);
+
+      const targetRow = i < split ? row1 : row2;
+      targetRow.appendChild(rb);
     }
+
+
 
     el("prevStepBtn").disabled = state.replayIndex === 0;
     el("nextStepBtn").disabled = state.replayIndex === stepMax;

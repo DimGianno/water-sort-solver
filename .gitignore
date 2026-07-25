@@ -1,0 +1,5 @@
+dist/
+*.tar.gz
+.tmp-sites-source/
+.tmp-sites-package/
+AGENTS.md
