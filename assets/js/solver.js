@@ -15,7 +15,7 @@ export function createSolver(ctx) {
   const makeWorker =
     ctx.createWorker ||
     (() =>
-      new Worker(new URL("./solver-worker.js", import.meta.url), {
+      new Worker(new URL("./solver-worker.ts", import.meta.url), {
         type: "module",
       }));
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.js";
+import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.ts";
 import { aStarSolve } from "../assets/js/solver-core.js";
 import { createSolver } from "../assets/js/solver.js";
 

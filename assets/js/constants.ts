@@ -13,9 +13,11 @@ export const COLOR_PALETTE = {
   Purple: "#8e24aa",
   Gray: "#9e9e9e",
   Brown: "#6d4c41",
-};
+} as const;
 
-export const DEFAULT_COLORS = Object.keys(COLOR_PALETTE);
+export type ColorName = keyof typeof COLOR_PALETTE;
+
+export const DEFAULT_COLORS = Object.keys(COLOR_PALETTE) as ColorName[];
 
 export const SAMPLE_PUZZLE = {
   v: 1,

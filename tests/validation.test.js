@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CAP, DEFAULT_COLORS } from "../assets/js/constants.js";
-import { createValidation } from "../assets/js/validation.js";
+import { CAP, DEFAULT_COLORS } from "../assets/js/constants.ts";
+import { createValidation } from "../assets/js/validation.ts";
 
 function createFixture({
   checkedColors = ["Red", "Blue"],

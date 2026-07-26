@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CAP, DEFAULT_COLORS } from "../assets/js/constants.js";
+import { CAP, DEFAULT_COLORS } from "../assets/js/constants.ts";
 import { createImportExport } from "../assets/js/io.js";
 
 function encodePayload(payload) {

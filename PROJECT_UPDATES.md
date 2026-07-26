@@ -11,9 +11,18 @@
 
 ## Current Project Summary
 
-Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and modular vanilla JavaScript with no runtime framework or client dependency; Playwright is used for development-time browser testing.
+Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-26 - Incremental Vite and TypeScript foundation
+
+- **Type:** Tooling
+- **Status:** In progress
+- **Summary:** Introduced Vite and began a module-by-module TypeScript migration.
+- **User impact:** The puzzle-building, validation, background solving, cancellation, and replay behavior remains unchanged.
+- **Technical impact:** Replaced the copy-based client build with Vite, added strict no-emit type-checking, migrated constants and validation, introduced shared solver contracts, and typed the Web Worker message boundary while retaining the existing server artifact.
+- **Related area:** Developer experience and solver architecture
 
 ### 2026-07-26 - Stable cross-browser verification
 
@@ -98,7 +107,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 
 ## Portfolio Highlights
 
-- Modular vanilla JavaScript architecture separating builder, validation, search, replay, and import/export responsibilities.
+- Incrementally typed, framework-free module architecture separating builder, validation, search, replay, and import/export responsibilities.
 - A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
 - Responsive Web Worker execution with progress events, cancellation, and stale-result protection.
 - Mobile-first dual-mode puzzle entry with constrained color inventory and accessible native controls.
@@ -106,4 +115,4 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - Layered automated coverage for validation, import/export, solver behavior, browser interactions, and responsive layouts.
 - Cross-browser GitHub Actions quality gate with retained failure traces and reports.
 - Responsive visual replay that uses the same bottle model as puzzle entry.
-- Dependency-free delivery with a small production build script and no client framework.
+- Vite production bundling with no client framework or production runtime dependencies.

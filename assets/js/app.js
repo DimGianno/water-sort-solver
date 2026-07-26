@@ -3,8 +3,8 @@ import {
   COLOR_PALETTE,
   DEFAULT_COLORS,
   SAMPLE_PUZZLE,
-} from "./constants.js";
-import { createValidation } from "./validation.js";
+} from "./constants.ts";
+import { createValidation } from "./validation.ts";
 import { createReplay } from "./replay.js";
 import { createBuilder } from "./builder.js";
 import { createImportExport } from "./io.js";
