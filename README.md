@@ -94,10 +94,10 @@ assets/js/replay.ts       Typed step-by-step solution replay
 assets/js/io.ts           Typed puzzle import and export
 assets/js/validation.ts   Typed input validation
 assets/js/constants.ts    Typed capacity and color definitions
-playwright.config.js      Browser projects and Vite test-server configuration
+playwright.config.ts      Typed browser projects and Vite test-server configuration
 vitest.config.ts          Typed core-test configuration
 scripts/build.mjs         Vite production and server-artifact build
-tests/                    TypeScript core tests and Playwright browser tests
+tests/                    TypeScript core and Playwright browser tests
 tsconfig.json             Application and core-test TypeScript checking
 ```
 

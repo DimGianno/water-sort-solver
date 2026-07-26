@@ -21,7 +21,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - **Status:** Completed
 - **Summary:** Replaced the Node test runner with Vitest and migrated every core test file to TypeScript.
 - **User impact:** Core behavior remains protected while contributors get faster Vite-native execution, watch mode, and compile-time checks for test fixtures.
-- **Technical impact:** Added Vitest as a development dependency, isolated core tests from Playwright specs through typed configuration, included tests in strict TypeScript checking, retained all 24 existing assertion cases, and configured the quality workflow to run for every pushed branch and pull request.
+- **Technical impact:** Added Vitest as a development dependency, migrated both core and Playwright test code to TypeScript, included every automated test in strict TypeScript checking, retained all 24 core assertion cases and 36 browser checks, and configured the quality workflow to run for every pushed branch and pull request.
 - **Related area:** Testing and developer experience
 
 ### 2026-07-26 - Vite and TypeScript migration
