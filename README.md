@@ -27,6 +27,16 @@ python -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
+## Test
+
+Run the dependency-free automated test suite with Node.js:
+
+```bash
+npm test
+```
+
+The suite covers puzzle validation, import/export handling, and solver outcomes with valid move sequences.
+
 ## How it works
 
 Puzzle states are encoded as ordered bottle contents. The solver uses A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. Once a solution is found, every intermediate state is retained for the interactive replay.
@@ -43,6 +53,7 @@ assets/js/replay.js     Step-by-step solution replay
 assets/js/io.js         Puzzle import and export
 assets/js/validation.js Input validation
 assets/js/constants.js  Capacity and color definitions
+tests/                  Automated core-logic tests
 ```
 
 ## Built with

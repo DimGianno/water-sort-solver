@@ -4,7 +4,7 @@
 
 - **Project maturity:** Portfolio-ready
 - **Actively developed:** Yes
-- **Last reviewed:** 2026-07-25
+- **Last reviewed:** 2026-07-26
 
 ## Known Limitations
 
@@ -43,8 +43,8 @@
 - **Area:** Testing
 - **Severity:** Medium
 - **User impact:** Mobile layout or entry-flow regressions may not be detected by the current production build check.
-- **Technical impact:** The repository validates JavaScript syntax, element wiring, and production output but has no automated browser interaction suite.
-- **Current workaround:** Perform focused manual checks after builder or replay changes.
+- **Technical impact:** Core validation, import/export, and solver logic have automated tests, but responsive layout and browser interaction flows remain uncovered.
+- **Current workaround:** Run the core test suite, then perform focused manual checks after builder or replay changes.
 - **Suggested resolution:** Add browser tests for both fill modes, inventory limits, import/export, solving, replay, and representative mobile widths.
 - **Status:** Known
 
