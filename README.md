@@ -29,13 +29,22 @@ Then visit `http://localhost:8000`.
 
 ## Test
 
-Run the dependency-free automated test suite with Node.js:
+Install the development dependency and browser engines once:
+
+```bash
+npm install
+npx playwright install chromium firefox webkit
+```
+
+Run the core-logic tests, browser tests, or both:
 
 ```bash
 npm test
+npm run test:e2e
+npm run test:all
 ```
 
-The suite covers puzzle validation, import/export handling, and solver outcomes with valid move sequences.
+The suites cover puzzle validation, import/export handling, solver outcomes, both fill modes, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 ## How it works
 
@@ -53,9 +62,11 @@ assets/js/replay.js     Step-by-step solution replay
 assets/js/io.js         Puzzle import and export
 assets/js/validation.js Input validation
 assets/js/constants.js  Capacity and color definitions
-tests/                  Automated core-logic tests
+playwright.config.js    Browser projects and visual-test configuration
+scripts/serve.mjs       Local server for browser tests
+tests/                  Core-logic and browser interaction tests
 ```
 
 ## Built with
 
-Semantic HTML, modern CSS, and vanilla JavaScript modules. No frameworks or runtime dependencies are required.
+Semantic HTML, modern CSS, and vanilla JavaScript modules. No frameworks or runtime dependencies are required; Playwright is used as a development-only browser testing tool.
