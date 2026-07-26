@@ -84,7 +84,7 @@
 
 - **Priority:** High
 - **Reason:** The dual-mode builder and responsive replay depend on interaction behavior that core-logic tests cannot verify.
-- **Expected outcome:** Achieved with repeatable coverage for counters, exhausted colors, clearing layers, both fill modes, import/export, solving, replay controls, themes, overflow, and representative mobile layouts.
+- **Expected outcome:** Achieved with 36 passing checks for counters, exhausted colors, clearing layers, both fill modes, import/export, solving, replay controls, themes, overflow, and representative mobile layouts, plus Playwright-managed test-server startup.
 - **Affected area:** Builder, replay, test fixtures, Playwright configuration, visual baselines, and continuous integration
 - **Status:** Completed
 
