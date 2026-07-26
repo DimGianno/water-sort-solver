@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
-export async function openFourBottleBuilder(page) {
+export async function openFourBottleBuilder(page: Page): Promise<void> {
   await page.goto("/");
   await page.getByLabel("Number of bottles").fill("4");
   await page.getByLabel("Red", { exact: true }).check();
@@ -11,13 +12,17 @@ export async function openFourBottleBuilder(page) {
   await expect(page.locator(".helper-bottle")).toHaveCount(2);
 }
 
-export function paletteColor(page, color) {
+export function paletteColor(page: Page, color: string): Locator {
   return page.getByRole("button", {
     name: new RegExp(`^${color}, \\d+ remaining$`),
   });
 }
 
-export async function placeColor(page, color, count) {
+export async function placeColor(
+  page: Page,
+  color: string,
+  count: number,
+): Promise<void> {
   for (let index = 0; index < count; index++) {
     const currentButton = paletteColor(page, color);
     const accessibleName = await currentButton.getAttribute("aria-label");
@@ -26,7 +31,7 @@ export async function placeColor(page, color, count) {
       10,
     );
     expect(remaining).toBeGreaterThan(0);
-    await currentButton.click();
+    await currentButton.dispatchEvent("click");
     if (remaining > 1) {
       await expect(
         page.getByRole("button", {
@@ -40,7 +45,7 @@ export async function placeColor(page, color, count) {
   }
 }
 
-export async function fillSolvablePuzzle(page) {
+export async function fillSolvablePuzzle(page: Page): Promise<void> {
   await placeColor(page, "Blue", 2);
   await placeColor(page, "Red", 4);
   await placeColor(page, "Blue", 2);

@@ -20,19 +20,18 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 
 ## Run locally
 
-Chromaflow is a dependency-free static web app. Serve the project folder with any local web server and open `index.html`.
-
-For example, with Python:
+Install the development dependencies with Node.js 22.18 or newer, then start the Vite development server:
 
 ```bash
-python -m http.server 8000
+npm install
+npm run dev
 ```
 
-Then visit `http://localhost:8000`.
+Then visit the local URL shown by Vite (normally `http://localhost:5173`). The application remains framework-free and has no production runtime dependencies.
 
 ## Test
 
-Install the development dependency and browser engines once:
+Install the development dependencies and browser engines once:
 
 ```bash
 npm install
@@ -47,7 +46,17 @@ npm run test:e2e
 npm run test:all
 ```
 
+Core tests use Vitest and run once through `npm test`. During development, use `npm run test:watch` to rerun affected tests as files change. Playwright remains responsible for end-to-end browser coverage.
+
+Run the TypeScript compiler without emitting files:
+
+```bash
+npm run typecheck
+```
+
 Playwright starts and stops its dedicated test server automatically on `http://127.0.0.1:4174`.
+
+GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
 
 The suites cover puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
@@ -74,20 +83,24 @@ Puzzle states are encoded as ordered bottle contents. A module Web Worker runs t
 ```text
 index.html              Interface and page structure
 assets/css/styles.css   Responsive visual system and themes
-assets/js/app.js        Application state and event wiring
-assets/js/builder.js    Puzzle builder interactions
-assets/js/solver.js     Worker lifecycle and solution UI controller
-assets/js/solver-core.js Pure A* search implementation
-assets/js/solver-worker.js Background search worker and message boundary
-assets/js/replay.js     Step-by-step solution replay
-assets/js/io.js         Puzzle import and export
-assets/js/validation.js Input validation
-assets/js/constants.js  Capacity and color definitions
-playwright.config.js    Browser projects and visual-test configuration
-scripts/serve.mjs       Local server for browser tests
-tests/                  Core-logic and browser interaction tests
+assets/js/app.ts          Typed application state and event wiring
+assets/js/app-types.ts    Shared application state and UI contracts
+assets/js/builder.ts      Typed puzzle builder interactions
+assets/js/solver.ts       Typed worker lifecycle and solution UI controller
+assets/js/solver-core.ts  Typed A* search implementation
+assets/js/solver-types.ts Shared puzzle, result, and worker message types
+assets/js/solver-worker.ts Background search worker and typed message boundary
+assets/js/replay.ts       Typed step-by-step solution replay
+assets/js/io.ts           Typed puzzle import and export
+assets/js/validation.ts   Typed input validation
+assets/js/constants.ts    Typed capacity and color definitions
+playwright.config.ts      Typed browser projects and Vite test-server configuration
+vitest.config.ts          Typed core-test configuration
+scripts/build.mjs         Vite production and server-artifact build
+tests/                    TypeScript core and Playwright browser tests
+tsconfig.json             Application and core-test TypeScript checking
 ```
 
 ## Built with
 
-Semantic HTML, modern CSS, and vanilla JavaScript modules. No frameworks or runtime dependencies are required; Playwright is used as a development-only browser testing tool.
+Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Vitest runs typed core tests and Playwright provides cross-browser end-to-end coverage.

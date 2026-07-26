@@ -4,7 +4,7 @@ import {
   fillSolvablePuzzle,
   openFourBottleBuilder,
   paletteColor,
-} from "./helpers.js";
+} from "./helpers.ts";
 
 test("layer-first entry restores inventory when a layer is cleared", async ({
   page,

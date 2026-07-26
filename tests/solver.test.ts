@@ -1,20 +1,28 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 
-import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.js";
-import { aStarSolve } from "../assets/js/solver-core.js";
-import { createSolver } from "../assets/js/solver.js";
+import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.ts";
+import { aStarSolve } from "../assets/js/solver-core.ts";
+import { createSolver } from "../assets/js/solver.ts";
+import type {
+  PuzzleState,
+  ReplaySolution,
+  SolveWorkerRequest,
+  SolverMode,
+  SolverWorkerMessage,
+} from "../assets/js/solver-types.ts";
 
 class FakeWorker {
+  autoSolve: boolean;
+  messages: SolveWorkerRequest[] = [];
+  terminated = false;
+  onmessage: ((event: MessageEvent<SolverWorkerMessage>) => void) | null = null;
+  onerror: ((event: ErrorEvent) => void) | null = null;
+
   constructor(autoSolve = true) {
     this.autoSolve = autoSolve;
-    this.messages = [];
-    this.terminated = false;
-    this.onmessage = null;
-    this.onerror = null;
   }
 
-  postMessage(message) {
+  postMessage(message: SolveWorkerRequest): void {
     this.messages.push(message);
     if (!this.autoSolve) return;
     queueMicrotask(() => {
@@ -25,16 +33,23 @@ class FakeWorker {
     });
   }
 
-  emit(data) {
-    this.onmessage?.({ data });
+  emit(data: SolverWorkerMessage): void {
+    this.onmessage?.({ data } as MessageEvent<SolverWorkerMessage>);
   }
 
-  terminate() {
+  terminate(): void {
     this.terminated = true;
   }
 }
 
-function createFixture(bottles, options = {}) {
+interface FixtureOptions {
+  mode?: SolverMode;
+  previousReplay?: ReplaySolution | null;
+  autoSolve?: boolean;
+  validationError?: string | null;
+}
+
+function createFixture(bottles: PuzzleState, options: FixtureOptions = {}) {
   const elements = {
     modeSel: { value: options.mode || "fast" },
     shortMoves: { checked: false },
@@ -44,8 +59,8 @@ function createFixture(bottles, options = {}) {
     solveBtn: {
       textContent: "Solve puzzle",
       disabled: false,
-      attributes: {},
-      setAttribute(name, value) {
+      attributes: {} as Record<string, string>,
+      setAttribute(name: string, value: string) {
         this.attributes[name] = value;
       },
     },
@@ -55,36 +70,37 @@ function createFixture(bottles, options = {}) {
     selectedLayer: 1,
     openPopoverBottle: 2,
     isSolving: false,
+    revealReplayOnSolve: false,
   };
   const messages = {
-    errors: [],
-    successes: [],
+    errors: [] as string[],
+    successes: [] as string[],
     replay: options.previousReplay ?? null,
   };
   const worker = new FakeWorker(options.autoSolve !== false);
   const solver = createSolver({
     CAP,
     state,
-    el: (id) => elements[id],
-    showError: (message) => messages.errors.push(message),
-    showSuccess: (message) => messages.successes.push(message),
+    el: (id: string) => elements[id as keyof typeof elements],
+    showError: (message: string) => messages.errors.push(message),
+    showSuccess: (message: string) => messages.successes.push(message),
     readStateFromInput: () => bottles.map((bottle) => bottle.slice()),
     validateInput: () => options.validationError || null,
     closeAllPopovers: () => {},
     renderAllLayers: () => {},
-    showReplay: (replay) => {
+    showReplay: (replay: ReplaySolution) => {
       messages.replay = replay;
     },
     updateSolveEnabled: () => {
       elements.solveBtn.disabled = Boolean(options.validationError);
     },
-    createWorker: () => worker,
-  });
+    createWorker: () => worker as unknown as Worker,
+  } as unknown as Parameters<typeof createSolver>[0]);
 
   return { elements, messages, solver, state, worker };
 }
 
-function isSolved(bottles) {
+function isSolved(bottles: PuzzleState): boolean {
   return bottles.every(
     (bottle) =>
       bottle.length === 0 ||
@@ -92,7 +108,8 @@ function isSolved(bottles) {
   );
 }
 
-const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+const nextTurn = (): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, 0));
 
 test("the solver core preserves valid results in both search modes", () => {
   const bottles = [
@@ -102,9 +119,10 @@ test("the solver core preserves valid results in both search modes", () => {
     [],
   ];
 
-  for (const mode of ["fast", "optimal"]) {
+  for (const mode of ["fast", "optimal"] as const) {
     const result = aStarSolve(bottles, mode, { cap: CAP });
-    assert.equal(result.ok, true);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.reason);
     let current = bottles;
     for (const move of result.moves) {
       const source = current[move.from].slice(0, -move.amt);
@@ -115,7 +133,7 @@ test("the solver core preserves valid results in both search modes", () => {
         index === move.from ? source : index === move.to ? destination : bottle,
       );
     }
-    assert.equal(isSolved(current), true);
+    expect(isSolved(current)).toBe(true);
   }
 });
 
@@ -126,10 +144,11 @@ test("the curated sample demonstrates the fast versus optimal-ish tradeoff", () 
   const fast = aStarSolve(bottles, "fast", { cap: CAP });
   const optimal = aStarSolve(bottles, "optimal", { cap: CAP });
 
-  assert.equal(fast.ok, true);
-  assert.equal(optimal.ok, true);
-  assert.ok(fast.moves.length > optimal.moves.length);
-  assert.ok(optimal.explored > fast.explored * 5);
+  expect(fast.ok).toBe(true);
+  expect(optimal.ok).toBe(true);
+  if (!fast.ok || !optimal.ok) throw new Error("Expected both modes to solve");
+  expect(fast.moves.length).toBeGreaterThan(optimal.moves.length);
+  expect(optimal.explored).toBeGreaterThan(fast.explored * 5);
 });
 
 test("solve recognizes an already solved puzzle through the worker", async () => {
@@ -144,11 +163,12 @@ test("solve recognizes an already solved puzzle through the worker", async () =>
   solver.solve();
   await nextTurn();
 
-  assert.equal(elements.output.textContent, "Already solved.");
-  assert.equal(elements.status.textContent, "Done.");
-  assert.deepEqual(messages.replay.moves, []);
-  assert.deepEqual(messages.replay.states, [bottles]);
-  assert.match(messages.successes.at(-1), /^Solved! Moves: 0\./);
+  expect(elements.output.textContent).toBe("Already solved.");
+  expect(elements.status.textContent).toBe("Done.");
+  expect(messages.replay).not.toBeNull();
+  expect(messages.replay?.moves).toEqual([]);
+  expect(messages.replay?.states).toEqual([bottles]);
+  expect(messages.successes.at(-1)).toMatch(/^Solved! Moves: 0\./);
 });
 
 test("solve returns a valid replay sequence through the worker", async () => {
@@ -163,10 +183,15 @@ test("solve returns a valid replay sequence through the worker", async () => {
   solver.solve();
   await nextTurn();
 
-  assert.ok(messages.replay.moves.length > 0);
-  assert.equal(messages.replay.states.length, messages.replay.moves.length + 1);
-  assert.deepEqual(messages.replay.states[0], bottles);
-  assert.equal(isSolved(messages.replay.states.at(-1)), true);
+  expect(messages.replay).not.toBeNull();
+  if (!messages.replay) throw new Error("Expected a replay");
+  expect(messages.replay.moves.length).toBeGreaterThan(0);
+  expect(messages.replay.states.length).toBe(messages.replay.moves.length + 1);
+  expect(messages.replay.states[0]).toEqual(bottles);
+  const finalState = messages.replay.states.at(-1);
+  expect(finalState).toBeDefined();
+  if (!finalState) throw new Error("Expected a final replay state");
+  expect(isSolved(finalState)).toBe(true);
 });
 
 test("solve reports progress and cancellation while ignoring stale results", () => {
@@ -176,7 +201,10 @@ test("solve reports progress and cancellation while ignoring stale results", () 
     [],
     [],
   ];
-  const previousReplay = { moves: [{ from: 0, to: 1 }], states: [] };
+  const previousReplay: ReplaySolution = {
+    moves: [{ from: 0, to: 1, amt: 1, color: "Red" }],
+    states: [],
+  };
   const { elements, messages, solver, state, worker } = createFixture(bottles, {
     autoSolve: false,
     previousReplay,
@@ -184,9 +212,9 @@ test("solve reports progress and cancellation while ignoring stale results", () 
 
   solver.solve();
   const request = worker.messages[0];
-  assert.equal(state.isSolving, true);
-  assert.equal(elements.solveBtn.textContent, "Cancel search");
-  assert.deepEqual(request, {
+  expect(state.isSolving).toBe(true);
+  expect(elements.solveBtn.textContent).toBe("Cancel search");
+  expect(request).toEqual({
     type: "solve",
     requestId: 1,
     bottles,
@@ -199,20 +227,20 @@ test("solve reports progress and cancellation while ignoring stale results", () 
     requestId: request.requestId,
     expanded: 5000,
   });
-  assert.match(elements.status.textContent, /expanded 5[.,]000 states/);
+  expect(elements.status.textContent).toMatch(/expanded 5[.,]000 states/);
 
   solver.cancelSolve();
-  assert.equal(worker.terminated, true);
-  assert.equal(state.isSolving, false);
-  assert.equal(elements.solveBtn.textContent, "Solve puzzle");
-  assert.equal(elements.status.textContent, "Search cancelled.");
+  expect(worker.terminated).toBe(true);
+  expect(state.isSolving).toBe(false);
+  expect(elements.solveBtn.textContent).toBe("Solve puzzle");
+  expect(elements.status.textContent).toBe("Search cancelled.");
 
   worker.emit({
     type: "result",
     requestId: request.requestId,
     result: { ok: true, moves: [], explored: 1 },
   });
-  assert.equal(messages.replay, previousReplay);
+  expect(messages.replay).toBe(previousReplay);
 });
 
 test("worker errors preserve the prior replay and restore controls", () => {
@@ -231,11 +259,11 @@ test("worker errors preserve the prior replay and restore controls", () => {
   solver.solve();
   worker.emit({ type: "error", requestId: 1, message: "Worker crashed." });
 
-  assert.equal(state.isSolving, false);
-  assert.equal(elements.solveBtn.textContent, "Solve puzzle");
-  assert.equal(elements.status.textContent, "Search failed.");
-  assert.equal(messages.replay, previousReplay);
-  assert.equal(messages.errors.at(-1), "Solver error: Worker crashed.");
+  expect(state.isSolving).toBe(false);
+  expect(elements.solveBtn.textContent).toBe("Solve puzzle");
+  expect(elements.status.textContent).toBe("Search failed.");
+  expect(messages.replay).toBe(previousReplay);
+  expect(messages.errors.at(-1)).toBe("Solver error: Worker crashed.");
 });
 
 test("solve surfaces validation errors without starting a worker", () => {
@@ -246,6 +274,6 @@ test("solve surfaces validation errors without starting a worker", () => {
 
   solver.solve();
 
-  assert.equal(messages.errors.at(-1), "Select colors first.");
-  assert.equal(worker.messages.length, 0);
+  expect(messages.errors.at(-1)).toBe("Select colors first.");
+  expect(worker.messages).toHaveLength(0);
 });

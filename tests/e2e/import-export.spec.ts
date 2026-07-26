@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-import { fillSolvablePuzzle, openFourBottleBuilder } from "./helpers.js";
+import { fillSolvablePuzzle, openFourBottleBuilder } from "./helpers.ts";
+
+declare global {
+  interface Window {
+    __copiedPuzzle?: string;
+  }
+}
 
 test("a puzzle exported through the UI can be reset and imported", async ({
   page,
@@ -9,7 +15,7 @@ test("a puzzle exported through the UI can be reset and imported", async ({
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
       value: {
-        async writeText(value) {
+        async writeText(value: string) {
           window.__copiedPuzzle = value;
         },
       },

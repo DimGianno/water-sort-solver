@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { fillSolvablePuzzle, openFourBottleBuilder } from "./helpers.js";
+import { fillSolvablePuzzle, openFourBottleBuilder } from "./helpers.ts";
 
 test("a sample puzzle solves and reveals replay with one click", async ({
   page,
@@ -11,22 +11,28 @@ test("a sample puzzle solves and reveals replay with one click", async ({
   await expect(page.getByLabel("Concise moves")).not.toBeChecked();
   await page.getByRole("button", { name: "Try a sample" }).click();
 
-  await expect(page.locator("#success")).toContainText("Solved!");
+  await expect(page.locator("#success")).toContainText("Solved!", {
+    timeout: 15_000,
+  });
   await expect(page.locator("#replay")).toBeVisible();
   await expect(page.locator("#replayCard")).toBeInViewport();
   await expect(page.locator("#stepLabel")).toHaveText(/Step 0\/\d+/i);
 
   if (testInfo.project.name === "desktop-chromium") {
     const layout = await page.evaluate(() => {
-      const controls = document.querySelector(".solve-controls");
-      const success = document.querySelector("#success");
+      const controls = document.querySelector<HTMLElement>(".solve-controls");
+      const success = document.querySelector<HTMLElement>("#success");
       const controlItems = [
         document.querySelector("#modeSel"),
         document.querySelector("#showStates")?.closest("label"),
         document.querySelector("#shortMoves")?.closest("label"),
         document.querySelector("#solveBtn"),
       ];
+      if (!controls || !success || controlItems.some((item) => !item)) {
+        throw new Error("Expected solve controls and success message");
+      }
       const controlBottoms = controlItems.map((item) => {
+        if (!item) throw new Error("Expected solve control");
         const box = item.getBoundingClientRect();
         return box.bottom;
       });

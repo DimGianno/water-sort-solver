@@ -72,6 +72,14 @@
 
 ## Technical Improvements
 
+### Migrate frontend modules incrementally to TypeScript
+
+- **Priority:** Medium
+- **Reason:** Shared puzzle structures and asynchronous worker messages benefit from compile-time contracts without requiring a framework rewrite.
+- **Expected outcome:** Complete the migration module by module while preserving browser behavior and keeping each review focused.
+- **Affected area:** Build tooling, constants, validation, solver modules, worker messaging, and tests
+- **Status:** Completed - Vite now bundles a fully TypeScript application, with shared contracts covering state, validation, builder, import/export, replay, solver logic, and worker messaging; all Vitest and Playwright test code is also TypeScript.
+
 ### Move A* search into a Web Worker
 
 - **Priority:** High

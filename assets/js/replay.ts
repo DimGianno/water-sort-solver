@@ -1,7 +1,17 @@
-export function createReplay(ctx) {
+import type { AppState, ElementLookup } from "./app-types.ts";
+import type { ReplaySolution } from "./solver-types.ts";
+
+interface ReplayContext {
+  CAP: number;
+  COLOR_PALETTE: Readonly<Record<string, string>>;
+  state: AppState;
+  el: ElementLookup;
+}
+
+export function createReplay(ctx: ReplayContext) {
   const { CAP, COLOR_PALETTE, state, el } = ctx;
 
-  function hideReplay() {
+  function hideReplay(): void {
     el("replay").style.display = "none";
     el("replayPlaceholder").style.display = "flex";
     if (state.replayTimer) {
@@ -11,17 +21,17 @@ export function createReplay(ctx) {
     state.replayIndex = 0;
   }
 
-  function showReplay(solution) {
+  function showReplay(solution: ReplaySolution): void {
     state.lastSolution = solution;
     state.replayIndex = 0;
     el("replay").style.display = "block";
     el("replayPlaceholder").style.display = "none";
-    el("pauseBtn").disabled = true;
-    el("playBtn").disabled = false;
+    el<HTMLButtonElement>("pauseBtn").disabled = true;
+    el<HTMLButtonElement>("playBtn").disabled = false;
     renderReplay();
   }
 
-  function renderReplay() {
+  function renderReplay(): void {
     if (!state.lastSolution) return;
 
     const states = state.lastSolution.states;
@@ -30,7 +40,7 @@ export function createReplay(ctx) {
     const stepMax = states.length - 1;
     el("stepLabel").textContent = `Step ${state.replayIndex}/${stepMax}`;
 
-    const speed = parseFloat(el("speedRange").value);
+    const speed = parseFloat(el<HTMLInputElement>("speedRange").value);
     el("speedLabel").textContent = `${speed}x`;
 
     let hlFrom = -1;
@@ -90,17 +100,18 @@ export function createReplay(ctx) {
       targetRow.appendChild(rb);
     }
 
-    el("prevStepBtn").disabled = state.replayIndex === 0;
-    el("nextStepBtn").disabled = state.replayIndex === stepMax;
+    el<HTMLButtonElement>("prevStepBtn").disabled = state.replayIndex === 0;
+    el<HTMLButtonElement>("nextStepBtn").disabled =
+      state.replayIndex === stepMax;
   }
 
-  function stepPrev() {
+  function stepPrev(): void {
     if (!state.lastSolution) return;
     state.replayIndex = Math.max(0, state.replayIndex - 1);
     renderReplay();
   }
 
-  function stepNext() {
+  function stepNext(): void {
     if (!state.lastSolution) return;
     state.replayIndex = Math.min(
       state.lastSolution.states.length - 1,
@@ -109,18 +120,19 @@ export function createReplay(ctx) {
     renderReplay();
   }
 
-  function playReplay() {
+  function playReplay(): void {
     if (!state.lastSolution) return;
     if (state.replayTimer) return;
+    const solution = state.lastSolution;
 
-    el("playBtn").disabled = true;
-    el("pauseBtn").disabled = false;
+    el<HTMLButtonElement>("playBtn").disabled = true;
+    el<HTMLButtonElement>("pauseBtn").disabled = false;
 
-    const speed = parseFloat(el("speedRange").value);
+    const speed = parseFloat(el<HTMLInputElement>("speedRange").value);
     const interval = Math.max(80, Math.floor(600 / speed));
 
     state.replayTimer = setInterval(() => {
-      if (state.replayIndex >= state.lastSolution.states.length - 1) {
+      if (state.replayIndex >= solution.states.length - 1) {
         pauseReplay();
         return;
       }
@@ -129,17 +141,18 @@ export function createReplay(ctx) {
     }, interval);
   }
 
-  function pauseReplay() {
+  function pauseReplay(): void {
     if (state.replayTimer) {
       clearInterval(state.replayTimer);
       state.replayTimer = null;
     }
-    el("playBtn").disabled = false;
-    el("pauseBtn").disabled = true;
+    el<HTMLButtonElement>("playBtn").disabled = false;
+    el<HTMLButtonElement>("pauseBtn").disabled = true;
   }
 
-  function onSpeedChange() {
-    el("speedLabel").textContent = `${el("speedRange").value}x`;
+  function onSpeedChange(): void {
+    el("speedLabel").textContent =
+      `${el<HTMLInputElement>("speedRange").value}x`;
     if (state.replayTimer) {
       pauseReplay();
       playReplay();

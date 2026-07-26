@@ -11,9 +11,27 @@
 
 ## Current Project Summary
 
-Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and modular vanilla JavaScript with no runtime framework or client dependency; Playwright is used for development-time browser testing.
+Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-26 - Vite-native TypeScript unit tests
+
+- **Type:** Quality
+- **Status:** Completed
+- **Summary:** Replaced the Node test runner with Vitest and migrated every core test file to TypeScript.
+- **User impact:** Core behavior remains protected while contributors get faster Vite-native execution, watch mode, and compile-time checks for test fixtures.
+- **Technical impact:** Added Vitest as a development dependency, migrated both core and Playwright test code to TypeScript, included every automated test in strict TypeScript checking, retained all 24 core assertion cases and 36 browser checks, and configured the quality workflow to run for every pushed branch and pull request.
+- **Related area:** Testing and developer experience
+
+### 2026-07-26 - Vite and TypeScript migration
+
+- **Type:** Tooling
+- **Status:** Completed
+- **Summary:** Introduced Vite and migrated the browser application module by module to TypeScript.
+- **User impact:** The puzzle-building, validation, background solving, cancellation, and replay behavior remains unchanged.
+- **Technical impact:** Replaced the copy-based client build with Vite, added strict no-emit type-checking, migrated every application module, introduced shared application and solver contracts, and typed both sides of the Web Worker message boundary while retaining the existing server artifact.
+- **Related area:** Developer experience and solver architecture
 
 ### 2026-07-26 - Stable cross-browser verification
 
@@ -57,7 +75,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - **Status:** Completed
 - **Summary:** Added automated core-logic and cross-browser product-flow coverage.
 - **User impact:** Logic, interaction, and responsive-layout regressions are detected before changes reach the stable branch.
-- **Technical impact:** Added Node test-runner coverage plus 36 Playwright checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit, with Chromium visual baselines and a GitHub Actions quality gate.
+- **Technical impact:** Added core-logic coverage, now executed as typed Vitest tests, plus 36 Playwright checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit, with Chromium visual baselines and a GitHub Actions quality gate.
 - **Related area:** Testing
 
 ### 2026-07-25 - Mobile-first dual-mode puzzle builder
@@ -98,12 +116,12 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 
 ## Portfolio Highlights
 
-- Modular vanilla JavaScript architecture separating builder, validation, search, replay, and import/export responsibilities.
-- A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
+- Incrementally typed, framework-free module architecture separating builder, validation, search, replay, and import/export responsibilities.
+- Typed A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
 - Responsive Web Worker execution with progress events, cancellation, and stale-result protection.
 - Mobile-first dual-mode puzzle entry with constrained color inventory and accessible native controls.
 - Continuous validation that prevents invalid solver input and communicates completion state.
 - Layered automated coverage for validation, import/export, solver behavior, browser interactions, and responsive layouts.
 - Cross-browser GitHub Actions quality gate with retained failure traces and reports.
 - Responsive visual replay that uses the same bottle model as puzzle entry.
-- Dependency-free delivery with a small production build script and no client framework.
+- Vite production bundling with no client framework or production runtime dependencies.

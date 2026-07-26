@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { openFourBottleBuilder } from "./helpers.js";
+import { openFourBottleBuilder } from "./helpers.ts";
 
 test("the workspace stays usable without page-level horizontal overflow", async ({
   page,
@@ -29,6 +29,7 @@ test("the workspace stays usable without page-level horizontal overflow", async 
   for (let index = 0; index < buttonCount; index++) {
     const box = await paletteButtons.nth(index).boundingBox();
     expect(box).not.toBeNull();
+    if (!box) throw new Error("Expected palette button bounds");
     expect(box.width).toBeGreaterThanOrEqual(40);
     expect(box.height).toBeGreaterThanOrEqual(40);
     expect(box.x).toBeGreaterThanOrEqual(0);

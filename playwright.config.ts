@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+declare const process: { env: Record<string, string | undefined> };
+
 export default defineConfig({
   testDir: "./tests/e2e",
   outputDir: "test-results",
@@ -17,11 +19,14 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4174",
     colorScheme: "light",
+    contextOptions: {
+      reducedMotion: "reduce",
+    },
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "node scripts/serve.mjs --port 4174",
+    command: "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4174",
     url: "http://127.0.0.1:4174",
     reuseExistingServer: !process.env.CI,
   },
