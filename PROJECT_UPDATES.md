@@ -2,7 +2,7 @@
 
 ## Latest Stable State
 
-- **Last updated:** 2026-07-25
+- **Last updated:** 2026-07-26
 - **Current version:** 1.0.0
 - **Current status:** Active
 - **Primary branch:** `main`
@@ -11,9 +11,18 @@
 
 ## Current Project Summary
 
-Chromaflow is a dependency-free browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and modular vanilla JavaScript with no runtime framework or external package dependency.
+Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and modular vanilla JavaScript with no runtime framework or client dependency; Playwright is used for development-time browser testing.
 
 ## Latest Updates
+
+### 2026-07-26 - Automated core and browser test suite
+
+- **Type:** Quality
+- **Status:** Completed
+- **Summary:** Added automated core-logic and cross-browser product-flow coverage.
+- **User impact:** Logic, interaction, and responsive-layout regressions are detected before changes reach the stable branch.
+- **Technical impact:** Added Node test-runner coverage plus 28 Playwright checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit, with Chromium visual baselines and a GitHub Actions quality gate.
+- **Related area:** Testing
 
 ### 2026-07-25 - Mobile-first dual-mode puzzle builder
 
@@ -46,6 +55,7 @@ Chromaflow is a dependency-free browser application for recreating and solving W
 - Replay solutions step by step with adjustable playback speed.
 - Import and export puzzle configurations using compact shareable codes.
 - Support responsive light and dark themes without runtime dependencies.
+- Verify core logic and browser workflows automatically across desktop and mobile profiles.
 
 ## Portfolio Highlights
 
@@ -53,5 +63,7 @@ Chromaflow is a dependency-free browser application for recreating and solving W
 - A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
 - Mobile-first dual-mode puzzle entry with constrained color inventory and accessible native controls.
 - Continuous validation that prevents invalid solver input and communicates completion state.
+- Layered automated coverage for validation, import/export, solver behavior, browser interactions, and responsive layouts.
+- Cross-browser GitHub Actions quality gate with retained failure traces and reports.
 - Responsive visual replay that uses the same bottle model as puzzle entry.
 - Dependency-free delivery with a small production build script and no client framework.

@@ -4,7 +4,7 @@
 
 - **Project maturity:** Portfolio-ready
 - **Actively developed:** Yes
-- **Last reviewed:** 2026-07-25
+- **Last reviewed:** 2026-07-26
 
 ## Known Limitations
 
@@ -38,14 +38,14 @@
 - **Suggested resolution:** Make capacity and helper count configurable only if real target games require those variants.
 - **Status:** Known
 
-### Interactive browser coverage is not automated
+### Visual regression baselines are intentionally scoped
 
 - **Area:** Testing
-- **Severity:** Medium
-- **User impact:** Mobile layout or entry-flow regressions may not be detected by the current production build check.
-- **Technical impact:** The repository validates JavaScript syntax, element wiring, and production output but has no automated browser interaction suite.
-- **Current workaround:** Perform focused manual checks after builder or replay changes.
-- **Suggested resolution:** Add browser tests for both fill modes, inventory limits, import/export, solving, replay, and representative mobile widths.
+- **Severity:** Low
+- **User impact:** Functional behavior is tested across Chromium, Firefox, and WebKit profiles, but subtle pixel-only differences outside the two Chromium baselines may still require visual review.
+- **Technical impact:** Desktop and mobile Chromium have screenshot baselines; Firefox and mobile WebKit use interaction and layout assertions without pixel snapshots.
+- **Current workaround:** Review Playwright traces, failure screenshots, and affected browser profiles when visual styles change.
+- **Suggested resolution:** Add stable browser-specific baselines only when they provide enough regression value to justify their maintenance cost.
 - **Status:** Known
 
 ## Next Features
@@ -90,13 +90,13 @@
 - **Affected area:** `assets/js/solver.js`, application state, solve controls, and worker messaging
 - **Status:** Idea
 
-### Add automated browser interaction tests
+### Maintain automated browser interaction tests
 
 - **Priority:** High
-- **Reason:** The dual-mode builder and responsive replay depend on interaction behavior that syntax and build checks cannot verify.
-- **Expected outcome:** Repeatable coverage for counters, exhausted colors, clearing and replacing layers, both fill modes, import/export, replay controls, and mobile layouts.
-- **Affected area:** Builder, replay, test fixtures, test configuration, and continuous integration
-- **Status:** Idea
+- **Reason:** The dual-mode builder and responsive replay depend on interaction behavior that core-logic tests cannot verify.
+- **Expected outcome:** Achieved with repeatable coverage for counters, exhausted colors, clearing layers, both fill modes, import/export, solving, replay controls, themes, overflow, and representative mobile layouts.
+- **Affected area:** Builder, replay, test fixtures, Playwright configuration, visual baselines, and continuous integration
+- **Status:** Completed
 
 ### Add a cancelable and bounded search experience
 
@@ -113,7 +113,7 @@
    - Included work: Web Worker extraction, progress events, cancellation, state-limit feedback, and solver regression tests.
    - Completion criteria: Search never blocks interface input, can be cancelled cleanly, and returns the same valid move sequences as the current implementation.
 
-2. **Automated product-flow coverage**
+2. **Automated product-flow coverage — Completed 2026-07-26**
    - Goal: Protect the complete mobile builder-to-replay experience from regressions.
    - Included work: Browser test setup, fill-mode and counter scenarios, import/export fixtures, solving, replay, and representative phone and desktop viewports.
    - Completion criteria: Both fill modes and the complete solve/replay journey pass reliably in the automated quality gate.
