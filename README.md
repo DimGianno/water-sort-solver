@@ -56,6 +56,8 @@ npm run typecheck
 
 Playwright starts and stops its dedicated test server automatically on `http://127.0.0.1:4174`.
 
+GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
+
 The suites cover puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
