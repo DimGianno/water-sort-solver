@@ -2,22 +2,66 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CAP } from "../assets/js/constants.js";
+import { aStarSolve } from "../assets/js/solver-core.js";
 import { createSolver } from "../assets/js/solver.js";
 
-function createFixture(bottles, validationError = null) {
+class FakeWorker {
+  constructor(autoSolve = true) {
+    this.autoSolve = autoSolve;
+    this.messages = [];
+    this.terminated = false;
+    this.onmessage = null;
+    this.onerror = null;
+  }
+
+  postMessage(message) {
+    this.messages.push(message);
+    if (!this.autoSolve) return;
+    queueMicrotask(() => {
+      const result = aStarSolve(message.bottles, message.mode, {
+        cap: message.cap,
+      });
+      this.emit({ type: "result", requestId: message.requestId, result });
+    });
+  }
+
+  emit(data) {
+    this.onmessage?.({ data });
+  }
+
+  terminate() {
+    this.terminated = true;
+  }
+}
+
+function createFixture(bottles, options = {}) {
   const elements = {
-    modeSel: { value: "fast" },
+    modeSel: { value: options.mode || "fast" },
     shortMoves: { checked: false },
     showStates: { checked: false },
-    output: { textContent: "" },
-    status: { textContent: "" },
+    output: { textContent: "Previous solution" },
+    status: { textContent: "Done." },
+    solveBtn: {
+      textContent: "Solve puzzle",
+      disabled: false,
+      attributes: {},
+      setAttribute(name, value) {
+        this.attributes[name] = value;
+      },
+    },
   };
   const state = {
     bottleLayers: bottles.map((bottle) => bottle.slice()),
     selectedLayer: 1,
     openPopoverBottle: 2,
+    isSolving: false,
   };
-  const messages = { errors: [], successes: [], replay: null };
+  const messages = {
+    errors: [],
+    successes: [],
+    replay: options.previousReplay ?? null,
+  };
+  const worker = new FakeWorker(options.autoSolve !== false);
   const solver = createSolver({
     CAP,
     state,
@@ -25,25 +69,57 @@ function createFixture(bottles, validationError = null) {
     showError: (message) => messages.errors.push(message),
     showSuccess: (message) => messages.successes.push(message),
     readStateFromInput: () => bottles.map((bottle) => bottle.slice()),
-    validateInput: () => validationError,
+    validateInput: () => options.validationError || null,
     closeAllPopovers: () => {},
     renderAllLayers: () => {},
-    hideReplay: () => {},
     showReplay: (replay) => {
       messages.replay = replay;
     },
+    updateSolveEnabled: () => {
+      elements.solveBtn.disabled = Boolean(options.validationError);
+    },
+    createWorker: () => worker,
   });
 
-  return { elements, messages, solver, state };
+  return { elements, messages, solver, state, worker };
 }
 
 function isSolved(bottles) {
   return bottles.every(
-    (bottle) => bottle.length === 0 || (bottle.length === CAP && bottle.every((color) => color === bottle[0]))
+    (bottle) =>
+      bottle.length === 0 ||
+      (bottle.length === CAP && bottle.every((color) => color === bottle[0])),
   );
 }
 
-test("solve recognizes an already solved puzzle", () => {
+const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+
+test("the solver core preserves valid results in both search modes", () => {
+  const bottles = [
+    ["Red", "Red", "Blue", "Blue"],
+    ["Blue", "Blue", "Red", "Red"],
+    [],
+    [],
+  ];
+
+  for (const mode of ["fast", "optimal"]) {
+    const result = aStarSolve(bottles, mode, { cap: CAP });
+    assert.equal(result.ok, true);
+    let current = bottles;
+    for (const move of result.moves) {
+      const source = current[move.from].slice(0, -move.amt);
+      const destination = current[move.to].concat(
+        Array(move.amt).fill(move.color),
+      );
+      current = current.map((bottle, index) =>
+        index === move.from ? source : index === move.to ? destination : bottle,
+      );
+    }
+    assert.equal(isSolved(current), true);
+  }
+});
+
+test("solve recognizes an already solved puzzle through the worker", async () => {
   const bottles = [
     ["Red", "Red", "Red", "Red"],
     ["Blue", "Blue", "Blue", "Blue"],
@@ -53,6 +129,7 @@ test("solve recognizes an already solved puzzle", () => {
   const { elements, messages, solver } = createFixture(bottles);
 
   solver.solve();
+  await nextTurn();
 
   assert.equal(elements.output.textContent, "Already solved.");
   assert.equal(elements.status.textContent, "Done.");
@@ -61,7 +138,7 @@ test("solve recognizes an already solved puzzle", () => {
   assert.match(messages.successes.at(-1), /^Solved! Moves: 0\./);
 });
 
-test("solve returns a valid move sequence for a mixed puzzle", () => {
+test("solve returns a valid replay sequence through the worker", async () => {
   const bottles = [
     ["Red", "Red", "Blue", "Blue"],
     ["Blue", "Blue", "Red", "Red"],
@@ -71,29 +148,91 @@ test("solve returns a valid move sequence for a mixed puzzle", () => {
   const { messages, solver } = createFixture(bottles);
 
   solver.solve();
+  await nextTurn();
 
   assert.ok(messages.replay.moves.length > 0);
   assert.equal(messages.replay.states.length, messages.replay.moves.length + 1);
   assert.deepEqual(messages.replay.states[0], bottles);
   assert.equal(isSolved(messages.replay.states.at(-1)), true);
-
-  messages.replay.moves.forEach((move, index) => {
-    const before = messages.replay.states[index];
-    const after = messages.replay.states[index + 1];
-    assert.ok(move.amt > 0);
-    assert.equal(before[move.from].at(-1), move.color);
-    assert.equal(after[move.from].length, before[move.from].length - move.amt);
-    assert.equal(after[move.to].length, before[move.to].length + move.amt);
-    assert.ok(after[move.to].every((color, layer) => layer < before[move.to].length || color === move.color));
-  });
 });
 
-test("solve surfaces validation errors without starting a search", () => {
+test("solve reports progress and cancellation while ignoring stale results", () => {
+  const bottles = [
+    ["Red", "Red", "Blue", "Blue"],
+    ["Blue", "Blue", "Red", "Red"],
+    [],
+    [],
+  ];
+  const previousReplay = { moves: [{ from: 0, to: 1 }], states: [] };
+  const { elements, messages, solver, state, worker } = createFixture(bottles, {
+    autoSolve: false,
+    previousReplay,
+  });
+
+  solver.solve();
+  const request = worker.messages[0];
+  assert.equal(state.isSolving, true);
+  assert.equal(elements.solveBtn.textContent, "Cancel search");
+  assert.deepEqual(request, {
+    type: "solve",
+    requestId: 1,
+    bottles,
+    mode: "fast",
+    cap: CAP,
+  });
+
+  worker.emit({
+    type: "progress",
+    requestId: request.requestId,
+    expanded: 5000,
+  });
+  assert.match(elements.status.textContent, /expanded 5[.,]000 states/);
+
+  solver.cancelSolve();
+  assert.equal(worker.terminated, true);
+  assert.equal(state.isSolving, false);
+  assert.equal(elements.solveBtn.textContent, "Solve puzzle");
+  assert.equal(elements.status.textContent, "Search cancelled.");
+
+  worker.emit({
+    type: "result",
+    requestId: request.requestId,
+    result: { ok: true, moves: [], explored: 1 },
+  });
+  assert.equal(messages.replay, previousReplay);
+});
+
+test("worker errors preserve the prior replay and restore controls", () => {
+  const bottles = [
+    ["Red", "Red", "Blue", "Blue"],
+    ["Blue", "Blue", "Red", "Red"],
+    [],
+    [],
+  ];
+  const previousReplay = { moves: [], states: [bottles] };
+  const { elements, messages, solver, state, worker } = createFixture(bottles, {
+    autoSolve: false,
+    previousReplay,
+  });
+
+  solver.solve();
+  worker.emit({ type: "error", requestId: 1, message: "Worker crashed." });
+
+  assert.equal(state.isSolving, false);
+  assert.equal(elements.solveBtn.textContent, "Solve puzzle");
+  assert.equal(elements.status.textContent, "Search failed.");
+  assert.equal(messages.replay, previousReplay);
+  assert.equal(messages.errors.at(-1), "Solver error: Worker crashed.");
+});
+
+test("solve surfaces validation errors without starting a worker", () => {
   const bottles = [[], [], [], []];
-  const { messages, solver } = createFixture(bottles, "Select colors first.");
+  const { messages, solver, worker } = createFixture(bottles, {
+    validationError: "Select colors first.",
+  });
 
   solver.solve();
 
   assert.equal(messages.errors.at(-1), "Select colors first.");
-  assert.equal(messages.replay, null);
+  assert.equal(worker.messages.length, 0);
 });

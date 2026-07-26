@@ -2,7 +2,9 @@ export function createValidation(ctx) {
   const { CAP, DEFAULT_COLORS, state, el } = ctx;
 
   function selectedColors() {
-    return Array.from(el("colorChecklist").querySelectorAll('input[type="checkbox"]:checked')).map((x) => x.value);
+    return Array.from(
+      el("colorChecklist").querySelectorAll('input[type="checkbox"]:checked'),
+    ).map((x) => x.value);
   }
 
   function colorMaxAllowed() {
@@ -39,23 +41,27 @@ export function createValidation(ctx) {
     const n = bottles.length;
     if (!colors.length) return "Select colors first.";
     if (n < 4) return "Invalid bottle count (min 4).";
-    if (bottles[n - 1].length !== 0 || bottles[n - 2].length !== 0) return "Last 2 bottles must be empty (helpers).";
+    if (bottles[n - 1].length !== 0 || bottles[n - 2].length !== 0)
+      return "Last 2 bottles must be empty (helpers).";
 
     for (let i = 0; i < n - 2; i++) {
-      if (bottles[i].length !== CAP) return `Bottle ${i + 1} must have exactly ${CAP} layers (fill all).`;
+      if (bottles[i].length !== CAP)
+        return `Bottle ${i + 1} must have exactly ${CAP} layers (fill all).`;
     }
 
     const counts = new Map();
     for (const c of colors) counts.set(c, 0);
     for (const b of bottles) {
       for (const c of b) {
-        if (!counts.has(c)) return `Color "${c}" is used but not selected in the checklist.`;
+        if (!counts.has(c))
+          return `Color "${c}" is used but not selected in the checklist.`;
         counts.set(c, counts.get(c) + 1);
       }
     }
     for (const c of colors) {
       const k = counts.get(c) || 0;
-      if (k !== CAP) return `Color "${c}" appears ${k} times, but must appear exactly ${CAP} times.`;
+      if (k !== CAP)
+        return `Color "${c}" appears ${k} times, but must appear exactly ${CAP} times.`;
     }
     return null;
   }
@@ -76,6 +82,9 @@ export function createValidation(ctx) {
   }
 
   function updateSolveEnabled() {
+    if (state.isSolving) {
+      ctx.cancelSolve?.({ reason: "Puzzle changed. Search cancelled." });
+    }
     if (!state.bottleLayers.length) {
       el("solveBtn").disabled = true;
       return;

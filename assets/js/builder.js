@@ -21,9 +21,12 @@ export function createBuilder(ctx) {
     const chosen = selectedColors().length;
     el("colorLimitHint").textContent = `${chosen}/${max} selected`;
 
-    const checkboxes = Array.from(el("colorChecklist").querySelectorAll('input[type="checkbox"]'));
+    const checkboxes = Array.from(
+      el("colorChecklist").querySelectorAll('input[type="checkbox"]'),
+    );
     const lock = chosen >= max;
-    for (const checkbox of checkboxes) checkbox.disabled = !checkbox.checked && lock;
+    for (const checkbox of checkboxes)
+      checkbox.disabled = !checkbox.checked && lock;
   }
 
   function buildChecklist() {
@@ -36,11 +39,16 @@ export function createBuilder(ctx) {
       checkbox.type = "checkbox";
       checkbox.value = color;
       checkbox.addEventListener("change", () => {
-        if (selectedColors().length > colorMaxAllowed()) checkbox.checked = false;
+        if (selectedColors().length > colorMaxAllowed())
+          checkbox.checked = false;
         updateColorLimitUI();
 
         if (state.bottleLayers.length) {
-          if (state.activeColor && !selectedColors().includes(state.activeColor)) state.activeColor = null;
+          if (
+            state.activeColor &&
+            !selectedColors().includes(state.activeColor)
+          )
+            state.activeColor = null;
           renderAllLayers();
           renderPalette();
           runContinuousValidation();
@@ -89,11 +97,13 @@ export function createBuilder(ctx) {
     showSuccess("");
     el("validationMsg").textContent = "";
 
-    if (!Number.isFinite(n) || n < 4) return showError("Number of bottles must be at least 4.");
+    if (!Number.isFinite(n) || n < 4)
+      return showError("Number of bottles must be at least 4.");
     if (n > 14) return showError("The maximum is 14 bottles.");
 
     const maxColors = n - 2;
-    if (colors.length !== maxColors) return showError(`Select exactly ${maxColors} colors.`);
+    if (colors.length !== maxColors)
+      return showError(`Select exactly ${maxColors} colors.`);
 
     state.bottleLayers = Array.from({ length: n }, () => Array(CAP).fill(""));
     state.selectedLayer = { b: 0, l: 0 };
@@ -133,12 +143,17 @@ export function createBuilder(ctx) {
         layer.className = "layer empty";
         layer.dataset.bottle = String(bottleIndex);
         layer.dataset.layer = String(layerIndex);
-        layer.setAttribute("aria-label", `Bottle ${bottleIndex + 1}, layer ${layerIndex + 1}, empty`);
+        layer.setAttribute(
+          "aria-label",
+          `Bottle ${bottleIndex + 1}, layer ${layerIndex + 1}, empty`,
+        );
 
         if (isHelper) {
           layer.disabled = true;
         } else {
-          layer.addEventListener("click", () => onLayerClick(bottleIndex, layerIndex));
+          layer.addEventListener("click", () =>
+            onLayerClick(bottleIndex, layerIndex),
+          );
         }
         layers.appendChild(layer);
       }
@@ -149,7 +164,8 @@ export function createBuilder(ctx) {
 
     el("fillToolbar").hidden = false;
     el("buildMsg").textContent = `${n} bottles ready`;
-    el("status").textContent = "Fill every non-helper bottle to unlock the solver.";
+    el("status").textContent =
+      "Fill every non-helper bottle to unlock the solver.";
     el("output").textContent = "Ready.";
 
     renderAllLayers();
@@ -166,7 +182,8 @@ export function createBuilder(ctx) {
 
     if (state.fillMode === "color" && state.activeColor) {
       const changed = setLayerColor(bottleIndex, layerIndex, state.activeColor);
-      if (changed && remainingFor(state.activeColor) === 0) state.activeColor = null;
+      if (changed && remainingFor(state.activeColor) === 0)
+        state.activeColor = null;
     }
 
     renderAllLayers();
@@ -179,7 +196,11 @@ export function createBuilder(ctx) {
     state.fillMode = mode === "color" ? "color" : "layer";
     state.activeColor = null;
 
-    if (state.fillMode === "layer" && state.bottleLayers.length && !state.selectedLayer) {
+    if (
+      state.fillMode === "layer" &&
+      state.bottleLayers.length &&
+      !state.selectedLayer
+    ) {
       state.selectedLayer = findNextEmptyLayer(-1, CAP - 1);
     }
 
@@ -196,7 +217,8 @@ export function createBuilder(ctx) {
       return;
     }
 
-    if (!state.selectedLayer) state.selectedLayer = findNextEmptyLayer(-1, CAP - 1);
+    if (!state.selectedLayer)
+      state.selectedLayer = findNextEmptyLayer(-1, CAP - 1);
     if (!state.selectedLayer) return;
 
     const { b, l } = state.selectedLayer;
@@ -266,13 +288,16 @@ export function createBuilder(ctx) {
 
       layer.classList.toggle(
         "selected",
-        !isHelper && !!state.selectedLayer && state.selectedLayer.b === b && state.selectedLayer.l === l
+        !isHelper &&
+          !!state.selectedLayer &&
+          state.selectedLayer.b === b &&
+          state.selectedLayer.l === l,
       );
       layer.classList.toggle("empty", !color);
       layer.style.backgroundColor = color ? COLOR_PALETTE[color] || "#ddd" : "";
       layer.setAttribute(
         "aria-label",
-        `Bottle ${b + 1}, layer ${l + 1}, ${isHelper ? "helper" : color || "empty"}`
+        `Bottle ${b + 1}, layer ${l + 1}, ${isHelper ? "helper" : color || "empty"}`,
       );
     });
   }
@@ -286,10 +311,13 @@ export function createBuilder(ctx) {
 
     const colors = selectedColors();
     const counts = computeUsedCounts();
-    if (state.activeColor && CAP - (counts[state.activeColor] || 0) <= 0) state.activeColor = null;
+    if (state.activeColor && CAP - (counts[state.activeColor] || 0) <= 0)
+      state.activeColor = null;
 
     const selected = state.selectedLayer;
-    const selectedValue = selected ? state.bottleLayers[selected.b][selected.l] : "";
+    const selectedValue = selected
+      ? state.bottleLayers[selected.b][selected.l]
+      : "";
     el("clearLayerBtn").disabled = !selectedValue;
 
     if (state.fillMode === "color") {

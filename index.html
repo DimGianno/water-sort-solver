@@ -1,211 +1,337 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build, solve, and replay Water Sort puzzles with a fast A* search engine." />
-  <meta name="theme-color" content="#6754d8" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Chromaflow — Water Sort Solver" />
-  <meta property="og:description" content="Turn tangled colors into a clear, replayable solution." />
-  <meta property="og:image" content="assets/images/og.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Chromaflow — Water Sort Solver" />
-  <meta name="twitter:description" content="Turn tangled colors into a clear, replayable solution." />
-  <meta name="twitter:image" content="assets/images/og.png" />
-  <title>Chromaflow — Water Sort Solver</title>
-  <link rel="stylesheet" href="assets/css/styles.css" />
-  <script type="module" defer src="assets/js/app.js"></script>
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#top" aria-label="Chromaflow home">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span>Chromaflow</span>
-    </a>
-    <div class="topbar-actions">
-      <span class="engine-pill"><span class="status-dot"></span>A* search engine</span>
-      <button id="themeBtn" class="icon-btn ghost-btn" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">◐</button>
-      <button id="resetBtn" class="ghost-btn" type="button">Reset puzzle</button>
-    </div>
-  </header>
-
-  <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow">A smarter way through every level</p>
-        <h1 id="hero-title">Turn tangled colors into a <span>clear solution.</span></h1>
-        <p class="hero-text">Recreate your Water Sort level, let the search engine find a path, then replay every pour at your own pace.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Build, solve, and replay Water Sort puzzles with a fast A* search engine."
+    />
+    <meta name="theme-color" content="#6754d8" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Chromaflow — Water Sort Solver" />
+    <meta
+      property="og:description"
+      content="Turn tangled colors into a clear, replayable solution."
+    />
+    <meta property="og:image" content="assets/images/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Chromaflow — Water Sort Solver" />
+    <meta
+      name="twitter:description"
+      content="Turn tangled colors into a clear, replayable solution."
+    />
+    <meta name="twitter:image" content="assets/images/og.png" />
+    <title>Chromaflow — Water Sort Solver</title>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script type="module" defer src="assets/js/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Chromaflow home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>Chromaflow</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="engine-pill"
+          ><span class="status-dot"></span>A* search engine</span
+        >
+        <button
+          id="themeBtn"
+          class="icon-btn ghost-btn"
+          type="button"
+          title="Toggle dark mode"
+          aria-label="Toggle dark mode"
+        >
+          ◐
+        </button>
+        <button id="resetBtn" class="ghost-btn" type="button">
+          Reset puzzle
+        </button>
       </div>
-      <div class="hero-stats" aria-label="Solver features">
-        <div><strong>14</strong><span>bottles max</span></div>
-        <div><strong>2</strong><span>search modes</span></div>
-        <div><strong>∞</strong><span>replay control</span></div>
-      </div>
-    </section>
+    </header>
 
-    <section class="workspace" aria-label="Puzzle workspace">
-      <aside class="setup-panel">
-        <div class="section-heading">
-          <span class="step-number">01</span>
-          <div>
-            <p class="kicker">Configure</p>
-            <h2>Set up your level</h2>
-          </div>
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">A smarter way through every level</p>
+          <h1 id="hero-title">
+            Turn tangled colors into a <span>clear solution.</span>
+          </h1>
+          <p class="hero-text">
+            Recreate your Water Sort level, let the search engine find a path,
+            then replay every pour at your own pace.
+          </p>
         </div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <label for="numBottles">Number of bottles</label>
-            <span>4–14</span>
-          </div>
-          <input id="numBottles" type="number" min="4" max="14" value="14" />
-          <p class="hint">Each bottle holds four layers. The final two are reserved as empty helpers.</p>
+        <div class="hero-stats" aria-label="Solver features">
+          <div><strong>14</strong><span>bottles max</span></div>
+          <div><strong>2</strong><span>search modes</span></div>
+          <div><strong>∞</strong><span>replay control</span></div>
         </div>
+      </section>
 
-        <div class="divider"></div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <label>Colors in this level</label>
-            <span id="colorLimitHint"></span>
-          </div>
-          <div id="colorChecklist" class="colors"></div>
-        </div>
-
-        <div class="setup-actions">
-          <button id="selectAllBtn" class="secondary-btn" type="button">Select all</button>
-          <button id="buildBtn" class="primary-btn" type="button">Build puzzle <span aria-hidden="true">→</span></button>
-        </div>
-        <div id="buildMsg" class="small" aria-live="polite"></div>
-        <div id="error" class="warn" role="alert"></div>
-
-        <div class="divider"></div>
-
-        <button id="importBtn" class="text-btn" type="button"><span aria-hidden="true">↓</span> Import a saved puzzle</button>
-        <div id="ioArea" class="io-area" hidden>
-          <label for="ioText">Puzzle code</label>
-          <textarea id="ioText" placeholder="Paste a Chromaflow export code here"></textarea>
-          <div class="inline io-actions">
-            <button id="ioApplyBtn" class="primary-btn" type="button">Apply</button>
-            <button id="ioCloseBtn" class="secondary-btn" type="button">Close</button>
-          </div>
-          <span class="small" id="ioMsg" aria-live="polite"></span>
-        </div>
-      </aside>
-
-      <div class="main-panel">
-        <section class="editor-card" aria-labelledby="editor-title">
-          <div class="card-heading">
-            <div class="section-heading">
-              <span class="step-number">02</span>
-              <div>
-                <p class="kicker">Recreate</p>
-                <h2 id="editor-title">Build the puzzle</h2>
-              </div>
-            </div>
-            <button id="exportBtn" class="secondary-btn" type="button">Export puzzle <span aria-hidden="true">↑</span></button>
-          </div>
-          <p class="section-intro">Enter each bottle from top to bottom.</p>
-          <div id="bottleArea" class="empty-stage">
-            <div class="empty-illustration" aria-hidden="true"><i></i><i></i><i></i></div>
-            <strong>Your bottles will appear here</strong>
-            <span>Select the bottle count and colors, then build the puzzle.</span>
-          </div>
-          <div id="fillToolbar" class="fill-toolbar" hidden>
-            <div class="fill-mode-group" role="radiogroup" aria-labelledby="fillModeLabel">
-              <span id="fillModeLabel" class="fill-mode-label">Fill method</span>
-              <label class="fill-mode-option">
-                <input id="fillModeLayer" type="radio" name="fillMode" value="layer" checked />
-                <span>Layer first</span>
-              </label>
-              <label class="fill-mode-option">
-                <input id="fillModeColor" type="radio" name="fillMode" value="color" />
-                <span>Color first</span>
-              </label>
-            </div>
-            <div class="palette-panel">
-              <div class="palette-heading">
-                <span id="paletteTitle">Choose a color</span>
-                <button id="clearLayerBtn" class="text-btn" type="button" disabled>Clear layer</button>
-              </div>
-              <div id="fillPalette" class="fill-palette" aria-label="Available colors"></div>
-            </div>
-          </div>
-          <div id="validationMsg" class="validation-msg" aria-live="polite"></div>
-        </section>
-
-        <section class="solve-card" aria-labelledby="solve-title">
-          <div class="solve-copy">
-            <span class="step-number">03</span>
+      <section class="workspace" aria-label="Puzzle workspace">
+        <aside class="setup-panel">
+          <div class="section-heading">
+            <span class="step-number">01</span>
             <div>
-              <p class="kicker">Solve</p>
-              <h2 id="solve-title">Find the way through</h2>
-              <p id="status" class="hint" aria-live="polite">Complete the puzzle above to unlock the solver.</p>
+              <p class="kicker">Configure</p>
+              <h2>Set up your level</h2>
             </div>
           </div>
-          <div class="solve-controls">
-            <div class="mode-field">
-              <label for="modeSel">Search mode</label>
-              <select id="modeSel" class="ui-select">
-                <option value="fast" selected>Fast</option>
-                <option value="optimal">Optimal-ish</option>
-              </select>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="numBottles">Number of bottles</label>
+              <span>4–14</span>
             </div>
-            <label class="check-option"><input id="showStates" type="checkbox" /><span>Show states</span></label>
-            <label class="check-option"><input id="shortMoves" type="checkbox" checked /><span>Concise moves</span></label>
-            <button id="solveBtn" class="primary-btn solve-btn" type="button" disabled>Solve puzzle <span aria-hidden="true">→</span></button>
+            <input id="numBottles" type="number" min="4" max="14" value="14" />
+            <p class="hint">
+              Each bottle holds four layers. The final two are reserved as empty
+              helpers.
+            </p>
           </div>
-          <div id="success" class="ok" role="status"></div>
-        </section>
-      </div>
-    </section>
 
-    <section class="results-grid" aria-label="Solution and replay">
-      <article class="result-card">
-        <div class="result-heading">
-          <div>
-            <p class="kicker">Directions</p>
-            <h2>Solution path</h2>
-          </div>
-          <span class="mono-badge">MOVE LIST</span>
-        </div>
-        <div id="output" class="output" aria-live="polite">Your step-by-step solution will appear here.</div>
-      </article>
+          <div class="divider"></div>
 
-      <article class="result-card replay-card">
-        <div class="result-heading">
-          <div>
-            <p class="kicker">Visual guide</p>
-            <h2>Replay</h2>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label>Colors in this level</label>
+              <span id="colorLimitHint"></span>
+            </div>
+            <div id="colorChecklist" class="colors"></div>
           </div>
-          <span id="stepLabel" class="mono-badge">STEP 0/0</span>
-        </div>
-        <div id="replay" class="replay">
-          <div class="replay-controls">
-            <button id="prevStepBtn" class="secondary-btn" type="button">← Previous</button>
-            <button id="nextStepBtn" class="secondary-btn" type="button">Next →</button>
-            <button id="playBtn" class="primary-btn" type="button">Play</button>
-            <button id="pauseBtn" class="secondary-btn" type="button" disabled>Pause</button>
-            <label class="speed-control" for="speedRange">Speed
-              <input id="speedRange" type="range" min="0.25" max="4" step="0.25" value="1" />
-              <span id="speedLabel">1×</span>
-            </label>
-          </div>
-          <div id="replayGrid"></div>
-        </div>
-        <div id="replayPlaceholder" class="replay-placeholder">
-          <span class="play-mark" aria-hidden="true">▶</span>
-          <strong>Replay becomes available after solving</strong>
-          <span>Step through each move or watch the full sequence.</span>
-        </div>
-      </article>
-    </section>
-  </main>
 
-  <footer>
-    <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Chromaflow</span></a>
-    <p>Designed and built as an interactive search-engine experiment.</p>
-  </footer>
-</body>
+          <div class="setup-actions">
+            <button id="selectAllBtn" class="secondary-btn" type="button">
+              Select all
+            </button>
+            <button id="buildBtn" class="primary-btn" type="button">
+              Build puzzle <span aria-hidden="true">→</span>
+            </button>
+          </div>
+          <div id="buildMsg" class="small" aria-live="polite"></div>
+          <div id="error" class="warn" role="alert"></div>
+
+          <div class="divider"></div>
+
+          <button id="importBtn" class="text-btn" type="button">
+            <span aria-hidden="true">↓</span> Import a saved puzzle
+          </button>
+          <div id="ioArea" class="io-area" hidden>
+            <label for="ioText">Puzzle code</label>
+            <textarea
+              id="ioText"
+              placeholder="Paste a Chromaflow export code here"
+            ></textarea>
+            <div class="inline io-actions">
+              <button id="ioApplyBtn" class="primary-btn" type="button">
+                Apply
+              </button>
+              <button id="ioCloseBtn" class="secondary-btn" type="button">
+                Close
+              </button>
+            </div>
+            <span class="small" id="ioMsg" aria-live="polite"></span>
+          </div>
+        </aside>
+
+        <div class="main-panel">
+          <section class="editor-card" aria-labelledby="editor-title">
+            <div class="card-heading">
+              <div class="section-heading">
+                <span class="step-number">02</span>
+                <div>
+                  <p class="kicker">Recreate</p>
+                  <h2 id="editor-title">Build the puzzle</h2>
+                </div>
+              </div>
+              <button id="exportBtn" class="secondary-btn" type="button">
+                Export puzzle <span aria-hidden="true">↑</span>
+              </button>
+            </div>
+            <p class="section-intro">Enter each bottle from top to bottom.</p>
+            <div id="bottleArea" class="empty-stage">
+              <div class="empty-illustration" aria-hidden="true">
+                <i></i><i></i><i></i>
+              </div>
+              <strong>Your bottles will appear here</strong>
+              <span
+                >Select the bottle count and colors, then build the
+                puzzle.</span
+              >
+            </div>
+            <div id="fillToolbar" class="fill-toolbar" hidden>
+              <div
+                class="fill-mode-group"
+                role="radiogroup"
+                aria-labelledby="fillModeLabel"
+              >
+                <span id="fillModeLabel" class="fill-mode-label"
+                  >Fill method</span
+                >
+                <label class="fill-mode-option">
+                  <input
+                    id="fillModeLayer"
+                    type="radio"
+                    name="fillMode"
+                    value="layer"
+                    checked
+                  />
+                  <span>Layer first</span>
+                </label>
+                <label class="fill-mode-option">
+                  <input
+                    id="fillModeColor"
+                    type="radio"
+                    name="fillMode"
+                    value="color"
+                  />
+                  <span>Color first</span>
+                </label>
+              </div>
+              <div class="palette-panel">
+                <div class="palette-heading">
+                  <span id="paletteTitle">Choose a color</span>
+                  <button
+                    id="clearLayerBtn"
+                    class="text-btn"
+                    type="button"
+                    disabled
+                  >
+                    Clear layer
+                  </button>
+                </div>
+                <div
+                  id="fillPalette"
+                  class="fill-palette"
+                  aria-label="Available colors"
+                ></div>
+              </div>
+            </div>
+            <div
+              id="validationMsg"
+              class="validation-msg"
+              aria-live="polite"
+            ></div>
+          </section>
+
+          <section class="solve-card" aria-labelledby="solve-title">
+            <div class="solve-copy">
+              <span class="step-number">03</span>
+              <div>
+                <p class="kicker">Solve</p>
+                <h2 id="solve-title">Find the way through</h2>
+                <p id="status" class="hint" aria-live="polite">
+                  Complete the puzzle above to unlock the solver.
+                </p>
+              </div>
+            </div>
+            <div class="solve-controls">
+              <div class="mode-field">
+                <label for="modeSel">Search mode</label>
+                <select id="modeSel" class="ui-select">
+                  <option value="fast" selected>Fast</option>
+                  <option value="optimal">Optimal-ish</option>
+                </select>
+              </div>
+              <label class="check-option"
+                ><input id="showStates" type="checkbox" /><span
+                  >Show states</span
+                ></label
+              >
+              <label class="check-option"
+                ><input id="shortMoves" type="checkbox" checked /><span
+                  >Concise moves</span
+                ></label
+              >
+              <button
+                id="solveBtn"
+                class="primary-btn solve-btn"
+                type="button"
+                disabled
+              >
+                Solve puzzle <span aria-hidden="true">→</span>
+              </button>
+            </div>
+            <div id="success" class="ok" role="status"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="results-grid" aria-label="Solution and replay">
+        <article class="result-card">
+          <div class="result-heading">
+            <div>
+              <p class="kicker">Directions</p>
+              <h2>Solution path</h2>
+            </div>
+            <span class="mono-badge">MOVE LIST</span>
+          </div>
+          <div id="output" class="output" aria-live="polite">
+            Your step-by-step solution will appear here.
+          </div>
+        </article>
+
+        <article class="result-card replay-card">
+          <div class="result-heading">
+            <div>
+              <p class="kicker">Visual guide</p>
+              <h2>Replay</h2>
+            </div>
+            <span id="stepLabel" class="mono-badge">STEP 0/0</span>
+          </div>
+          <div id="replay" class="replay">
+            <div class="replay-controls">
+              <button id="prevStepBtn" class="secondary-btn" type="button">
+                ← Previous
+              </button>
+              <button id="nextStepBtn" class="secondary-btn" type="button">
+                Next →
+              </button>
+              <button id="playBtn" class="primary-btn" type="button">
+                Play
+              </button>
+              <button
+                id="pauseBtn"
+                class="secondary-btn"
+                type="button"
+                disabled
+              >
+                Pause
+              </button>
+              <label class="speed-control" for="speedRange"
+                >Speed
+                <input
+                  id="speedRange"
+                  type="range"
+                  min="0.25"
+                  max="4"
+                  step="0.25"
+                  value="1"
+                />
+                <span id="speedLabel">1×</span>
+              </label>
+            </div>
+            <div id="replayGrid"></div>
+          </div>
+          <div id="replayPlaceholder" class="replay-placeholder">
+            <span class="play-mark" aria-hidden="true">▶</span>
+            <strong>Replay becomes available after solving</strong>
+            <span>Step through each move or watch the full sequence.</span>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <footer>
+      <a class="brand footer-brand" href="#top"
+        ><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span
+        ><span>Chromaflow</span></a
+      >
+      <p>Designed and built as an interactive search-engine experiment.</p>
+    </footer>
+  </body>
 </html>

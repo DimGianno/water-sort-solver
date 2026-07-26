@@ -55,6 +55,7 @@ const state = {
   replayIndex: 0,
   fillMode: "layer",
   activeColor: null,
+  isSolving: false,
 };
 
 function showError(msg) {
@@ -84,6 +85,7 @@ Object.assign(ctx, createImportExport(ctx));
 Object.assign(ctx, createSolver(ctx));
 
 function resetAll() {
+  ctx.cancelSolve?.({ silent: true });
   el("numBottles").value = 11;
   el("showStates").checked = false;
   el("shortMoves").checked = true;
@@ -140,8 +142,11 @@ el("numBottles").addEventListener("change", () => {
   el("numBottles").value = v;
 
   const max = ctx.colorMaxAllowed();
-  const checked = Array.from(el("colorChecklist").querySelectorAll('input[type="checkbox"]:checked'));
-  if (checked.length > max) for (let k = max; k < checked.length; k++) checked[k].checked = false;
+  const checked = Array.from(
+    el("colorChecklist").querySelectorAll('input[type="checkbox"]:checked'),
+  );
+  if (checked.length > max)
+    for (let k = max; k < checked.length; k++) checked[k].checked = false;
 
   ctx.updateSelectAllVisibility();
   ctx.updateColorLimitUI();
@@ -158,7 +163,6 @@ el("ioApplyBtn").addEventListener("click", ctx.onIOApply);
 
 el("selectAllBtn").addEventListener("click", ctx.selectAllColors);
 el("buildBtn").addEventListener("click", ctx.buildBottlesUI);
-
 
 el("exportBtn").addEventListener("click", ctx.onExport);
 

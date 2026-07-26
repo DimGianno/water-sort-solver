@@ -1,7 +1,34 @@
 export function createImportExport(ctx) {
   const { CAP, DEFAULT_COLORS, state, el } = ctx;
-  const { showError, selectedColors, updateSelectAllVisibility, updateColorLimitUI, buildBottlesUI } = ctx;
-  const { closeAllPopovers, renderAllLayers, renderPalette, runContinuousValidation, updateSolveEnabled } = ctx;
+  const {
+    showError,
+    selectedColors,
+    updateSelectAllVisibility,
+    updateColorLimitUI,
+    buildBottlesUI,
+  } = ctx;
+  const {
+    closeAllPopovers,
+    renderAllLayers,
+    renderPalette,
+    runContinuousValidation,
+    updateSolveEnabled,
+  } = ctx;
+  let toastTimer = null;
+
+  function showToast(message, tone = "success") {
+    const toast = el("toast");
+    if (!toast) return;
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.dataset.tone = tone;
+    toast.hidden = false;
+    toastTimer = setTimeout(() => {
+      toast.hidden = true;
+      toastTimer = null;
+    }, 2500);
+    toastTimer.unref?.();
+  }
 
   function toExportPayload() {
     const n = parseInt(el("numBottles").value, 10);
@@ -31,7 +58,8 @@ export function createImportExport(ctx) {
 
   function decodeImport(code) {
     const trimmed = (code || "").trim();
-    if (!trimmed.startsWith("WS1:")) throw new Error("Invalid code (missing WS1: prefix).");
+    if (!trimmed.startsWith("WS1:"))
+      throw new Error("Invalid code (missing WS1: prefix).");
     const b64 = trimmed.slice(4);
     let obj;
     try {
@@ -63,10 +91,16 @@ export function createImportExport(ctx) {
 
     const n = Math.max(4, Math.min(14, obj.n | 0));
     const max = n - 2;
-    const want = Array.isArray(obj.colors) ? obj.colors.filter((c) => DEFAULT_COLORS.includes(c)) : [];
-    if (want.length > max) throw new Error(`Too many colors in import for ${n} bottles (max ${max}).`);
+    const want = Array.isArray(obj.colors)
+      ? obj.colors.filter((c) => DEFAULT_COLORS.includes(c))
+      : [];
+    if (want.length > max)
+      throw new Error(
+        `Too many colors in import for ${n} bottles (max ${max}).`,
+      );
 
-    if (!Array.isArray(obj.layers) || obj.layers.length !== n) throw new Error("Invalid layers in payload.");
+    if (!Array.isArray(obj.layers) || obj.layers.length !== n)
+      throw new Error("Invalid layers in payload.");
 
     const cleanLayers = [];
     for (let b = 0; b < n; b++) {
@@ -77,7 +111,8 @@ export function createImportExport(ctx) {
       const cleanRow = [];
       for (let l = 0; l < CAP; l++) {
         const v = row[l] || "";
-        if (v !== "" && !want.includes(v)) throw new Error(`Invalid layer color "${v}" in payload.`);
+        if (v !== "" && !want.includes(v))
+          throw new Error(`Invalid layer color "${v}" in payload.`);
         cleanRow.push(v);
       }
       cleanLayers.push(cleanRow);
@@ -96,7 +131,9 @@ export function createImportExport(ctx) {
         cb.checked = false;
       });
     for (const c of parsed.want) {
-      const cb = el("colorChecklist").querySelector(`input[type="checkbox"][value="${CSS.escape(c)}"]`);
+      const cb = el("colorChecklist").querySelector(
+        `input[type="checkbox"][value="${CSS.escape(c)}"]`,
+      );
       if (cb) cb.checked = true;
     }
     updateSelectAllVisibility();
@@ -115,13 +152,43 @@ export function createImportExport(ctx) {
     updateSolveEnabled();
   }
 
-  function onExport() {
+  async function copyExportCode(code) {
+    try {
+      const clipboard = ctx.clipboard ?? globalThis.navigator?.clipboard;
+      if (!clipboard?.writeText) throw new Error("Clipboard API unavailable.");
+      await clipboard.writeText(code);
+      return true;
+    } catch {
+      const textArea = el("ioText");
+      textArea.focus?.();
+      textArea.select?.();
+      textArea.setSelectionRange?.(0, code.length);
+      try {
+        const copyCommand =
+          ctx.copyCommand ??
+          ((command) => globalThis.document?.execCommand?.(command));
+        return copyCommand("copy") === true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  async function onExport() {
     if (!state.bottleLayers.length) return showError("Build bottles UI first.");
     const payload = toExportPayload();
     const code = encodeExport(payload);
     showIO("export");
     el("ioText").value = code;
-    el("ioMsg").textContent = "Export ready. Copy it.";
+    const copied = await copyExportCode(code);
+    if (copied) {
+      el("ioMsg").textContent = "Export copied to clipboard.";
+      showToast("Puzzle copied to clipboard");
+    } else {
+      el("ioMsg").textContent =
+        "Automatic copy failed. Copy the selected code manually.";
+      showToast("Could not copy automatically", "warning");
+    }
   }
 
   function onImport() {

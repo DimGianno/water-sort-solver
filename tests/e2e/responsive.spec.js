@@ -2,21 +2,27 @@ import { expect, test } from "@playwright/test";
 
 import { openFourBottleBuilder } from "./helpers.js";
 
-test("the workspace stays usable without page-level horizontal overflow", async ({ page }, testInfo) => {
+test("the workspace stays usable without page-level horizontal overflow", async ({
+  page,
+}, testInfo) => {
   await page.goto("/");
 
   const initialLayout = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: window.innerWidth,
   }));
-  expect(initialLayout.documentWidth).toBeLessThanOrEqual(initialLayout.viewportWidth + 1);
+  expect(initialLayout.documentWidth).toBeLessThanOrEqual(
+    initialLayout.viewportWidth + 1,
+  );
 
   await openFourBottleBuilder(page);
   const builtLayout = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: window.innerWidth,
   }));
-  expect(builtLayout.documentWidth).toBeLessThanOrEqual(builtLayout.viewportWidth + 1);
+  expect(builtLayout.documentWidth).toBeLessThanOrEqual(
+    builtLayout.viewportWidth + 1,
+  );
 
   const paletteButtons = page.locator(".palette-color");
   const buttonCount = await paletteButtons.count();
@@ -26,18 +32,26 @@ test("the workspace stays usable without page-level horizontal overflow", async 
     expect(box.width).toBeGreaterThanOrEqual(40);
     expect(box.height).toBeGreaterThanOrEqual(40);
     expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(builtLayout.viewportWidth + 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(
+      builtLayout.viewportWidth + 1,
+    );
   }
 
   if (["desktop-chromium", "mobile-chromium"].includes(testInfo.project.name)) {
-    await expect(page.locator(".workspace")).toHaveScreenshot(`workspace-${testInfo.project.name}.png`);
+    await expect(page.locator(".workspace")).toHaveScreenshot(
+      `workspace-${testInfo.project.name}.png`,
+    );
   }
 });
 
-test("theme switching remains available at every configured viewport", async ({ page }) => {
+test("theme switching remains available at every configured viewport", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.getByRole("button", { name: "Switch to dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Switch to light mode" }),
+  ).toBeVisible();
 });

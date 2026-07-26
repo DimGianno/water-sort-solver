@@ -8,10 +8,11 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 - Choose between layer-first and color-first entry modes
 - Track each color's four available pieces with live counters
 - Choose from a color palette with live input validation
-- Solve with fast or optimal-ish A* search modes
+- Solve with fast or optimal-ish A* search modes in a responsive Web Worker
+- Follow expanded-state progress and cancel long searches safely
 - Review a concise move list or include the full state after each move
 - Replay solutions step by step with adjustable playback speed
-- Import and export puzzle configurations with a compact shareable code
+- Import and export puzzle configurations with a compact shareable code that copies automatically
 - Switch between light and dark themes
 - Use the complete experience on desktop, tablet, or mobile
 
@@ -46,9 +47,23 @@ npm run test:all
 
 The suites cover puzzle validation, import/export handling, solver outcomes, both fill modes, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
+Check repository formatting without changing files:
+
+```bash
+npm run format:check
+```
+
+Build, run the core tests, check formatting, and then preview the production bundle:
+
+```bash
+npm run check
+```
+
+The preview remains available at `http://127.0.0.1:4173` until the command is stopped. To preview an existing build directly, run `npm run preview`.
+
 ## How it works
 
-Puzzle states are encoded as ordered bottle contents. The solver uses A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. Once a solution is found, every intermediate state is retained for the interactive replay.
+Puzzle states are encoded as ordered bottle contents. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
 
 ## Project structure
 
@@ -57,7 +72,9 @@ index.html              Interface and page structure
 assets/css/styles.css   Responsive visual system and themes
 assets/js/app.js        Application state and event wiring
 assets/js/builder.js    Puzzle builder interactions
-assets/js/solver.js     A* solver implementation
+assets/js/solver.js     Worker lifecycle and solution UI controller
+assets/js/solver-core.js Pure A* search implementation
+assets/js/solver-worker.js Background search worker and message boundary
 assets/js/replay.js     Step-by-step solution replay
 assets/js/io.js         Puzzle import and export
 assets/js/validation.js Input validation
