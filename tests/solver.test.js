@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.ts";
-import { aStarSolve } from "../assets/js/solver-core.js";
+import { aStarSolve } from "../assets/js/solver-core.ts";
 import { createSolver } from "../assets/js/solver.js";
 
 class FakeWorker {

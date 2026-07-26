@@ -82,7 +82,7 @@ assets/css/styles.css   Responsive visual system and themes
 assets/js/app.js          Application state and event wiring
 assets/js/builder.js      Puzzle builder interactions
 assets/js/solver.js       Worker lifecycle and solution UI controller
-assets/js/solver-core.js  Pure A* search implementation
+assets/js/solver-core.ts  Typed A* search implementation
 assets/js/solver-types.ts Shared puzzle, result, and worker message types
 assets/js/solver-worker.ts Background search worker and typed message boundary
 assets/js/replay.js       Step-by-step solution replay
@@ -97,4 +97,4 @@ tsconfig.json             Incremental TypeScript checking configuration
 
 ## Built with
 
-Semantic HTML, modern CSS, and framework-free JavaScript and TypeScript modules bundled with Vite. TypeScript is being adopted incrementally, starting with constants, validation, shared solver contracts, and the Web Worker boundary. No production runtime dependencies are required; Playwright is used for browser testing.
+Semantic HTML, modern CSS, and framework-free JavaScript and TypeScript modules bundled with Vite. TypeScript is being adopted incrementally across constants, validation, shared solver contracts, the A* search engine, and the Web Worker boundary. No production runtime dependencies are required; Playwright is used for browser testing.

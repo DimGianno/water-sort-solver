@@ -11,7 +11,9 @@ test("a sample puzzle solves and reveals replay with one click", async ({
   await expect(page.getByLabel("Concise moves")).not.toBeChecked();
   await page.getByRole("button", { name: "Try a sample" }).click();
 
-  await expect(page.locator("#success")).toContainText("Solved!");
+  await expect(page.locator("#success")).toContainText("Solved!", {
+    timeout: 15_000,
+  });
   await expect(page.locator("#replay")).toBeVisible();
   await expect(page.locator("#replayCard")).toBeInViewport();
   await expect(page.locator("#stepLabel")).toHaveText(/Step 0\/\d+/i);

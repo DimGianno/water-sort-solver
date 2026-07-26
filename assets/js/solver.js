@@ -1,4 +1,4 @@
-import { applyMove, cloneState } from "./solver-core.js";
+import { applyMove, cloneState } from "./solver-core.ts";
 
 export function createSolver(ctx) {
   const { CAP, state, el } = ctx;

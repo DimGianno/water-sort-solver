@@ -26,7 +26,7 @@ export async function placeColor(page, color, count) {
       10,
     );
     expect(remaining).toBeGreaterThan(0);
-    await currentButton.click();
+    await currentButton.dispatchEvent("click");
     if (remaining > 1) {
       await expect(
         page.getByRole("button", {

@@ -1,9 +1,8 @@
 /// <reference lib="webworker" />
 
-import { aStarSolve } from "./solver-core.js";
+import { aStarSolve } from "./solver-core.ts";
 import type {
   SolveWorkerRequest,
-  SolverResult,
   SolverWorkerMessage,
 } from "./solver-types.ts";
 
@@ -25,7 +24,7 @@ worker.addEventListener("message", (event: MessageEvent<unknown>) => {
         };
         worker.postMessage(message);
       },
-    }) as SolverResult;
+    });
     const message: SolverWorkerMessage = { type: "result", requestId, result };
     worker.postMessage(message);
   } catch (error) {
