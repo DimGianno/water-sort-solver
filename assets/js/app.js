@@ -8,7 +8,7 @@ import { createValidation } from "./validation.ts";
 import { createReplay } from "./replay.js";
 import { createBuilder } from "./builder.js";
 import { createImportExport } from "./io.js";
-import { createSolver } from "./solver.js";
+import { createSolver } from "./solver.ts";
 
 const el = (id) => document.getElementById(id);
 

@@ -1,6 +1,60 @@
 import { applyMove, cloneState } from "./solver-core.ts";
+import type {
+  PuzzleState,
+  ReplaySolution,
+  SolveWorkerRequest,
+  SolverMode,
+  SolverResult,
+  SolverWorkerMessage,
+} from "./solver-types.ts";
 
-export function createSolver(ctx) {
+interface SolverState {
+  bottleLayers: string[][];
+  selectedLayer: unknown;
+  openPopoverBottle: number | null;
+  isSolving: boolean;
+  revealReplayOnSolve: boolean;
+}
+
+interface SolverContext {
+  CAP: number;
+  state: SolverState;
+  el: <T extends HTMLElement = HTMLElement>(id: string) => T;
+  showError: (message: string) => void;
+  showSuccess: (message: string) => void;
+  readStateFromInput: () => PuzzleState;
+  validateInput: (bottles: PuzzleState) => string | null;
+  closeAllPopovers: () => void;
+  renderAllLayers: () => void;
+  showReplay: (solution: ReplaySolution) => void;
+  updateSolveEnabled: () => void;
+  createWorker?: () => Worker;
+}
+
+interface CancelSolveOptions {
+  silent?: boolean;
+  reason?: string;
+}
+
+interface DisplayOptions {
+  shortMoves: boolean;
+  showStates: boolean;
+}
+
+interface SolverController {
+  solve: () => void;
+  cancelSolve: (options?: CancelSolveOptions) => boolean;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (message) return String(message);
+  }
+  return String(error);
+}
+
+export function createSolver(ctx: SolverContext): SolverController {
   const { CAP, state, el } = ctx;
   const {
     showError,
@@ -12,17 +66,17 @@ export function createSolver(ctx) {
     showReplay,
     updateSolveEnabled,
   } = ctx;
-  const makeWorker =
-    ctx.createWorker ||
+  const makeWorker: () => Worker =
+    ctx.createWorker ??
     (() =>
       new Worker(new URL("./solver-worker.ts", import.meta.url), {
         type: "module",
       }));
 
-  let activeWorker = null;
+  let activeWorker: Worker | null = null;
   let activeRequestId = 0;
 
-  function formatState(bottles) {
+  function formatState(bottles: PuzzleState): string {
     return bottles
       .map(
         (bottle, index) =>
@@ -31,21 +85,21 @@ export function createSolver(ctx) {
       .join("\n");
   }
 
-  function setSolveControl(isSolving) {
+  function setSolveControl(isSolving: boolean): void {
     state.isSolving = isSolving;
-    const button = el("solveBtn");
+    const button = el<HTMLButtonElement>("solveBtn");
     button.textContent = isSolving ? "Cancel search" : "Solve puzzle";
-    button.setAttribute?.("aria-label", button.textContent);
+    button.setAttribute("aria-label", button.textContent);
     if (isSolving) button.disabled = false;
     else updateSolveEnabled();
   }
 
-  function releaseWorker() {
+  function releaseWorker(): void {
     if (activeWorker) activeWorker.terminate();
     activeWorker = null;
   }
 
-  function cancelSolve(options = {}) {
+  function cancelSolve(options: CancelSolveOptions = {}): boolean {
     if (!activeWorker) return false;
     const requestId = activeRequestId;
     activeRequestId++;
@@ -63,14 +117,14 @@ export function createSolver(ctx) {
     return requestId > 0;
   }
 
-  function finishRequest(requestId) {
+  function finishRequest(requestId: number): boolean {
     if (!activeWorker || requestId !== activeRequestId) return false;
     releaseWorker();
     setSolveControl(false);
     return true;
   }
 
-  function showWorkerFailure(requestId, message) {
+  function showWorkerFailure(requestId: number, message?: string): void {
     if (!finishRequest(requestId)) return;
     const detail = message || "Unknown worker error.";
     state.revealReplayOnSolve = false;
@@ -79,7 +133,12 @@ export function createSolver(ctx) {
     el("output").textContent = `Solver error: ${detail}`;
   }
 
-  function renderSolution(bottles, result, options, elapsed) {
+  function renderSolution(
+    bottles: PuzzleState,
+    result: SolverResult,
+    options: DisplayOptions,
+    elapsed: number,
+  ): void {
     if (!result.ok) {
       state.revealReplayOnSolve = false;
       showError(`Failed: ${result.reason}`);
@@ -94,7 +153,7 @@ export function createSolver(ctx) {
     );
     el("status").textContent = "Done.";
 
-    const states = [cloneState(bottles)];
+    const states: PuzzleState[] = [cloneState(bottles)];
     let current = bottles;
     for (const move of result.moves) {
       current = applyMove(current, move, CAP);
@@ -124,7 +183,7 @@ export function createSolver(ctx) {
     }
   }
 
-  function solve() {
+  function solve(): void {
     if (activeWorker) {
       cancelSolve();
       return;
@@ -136,12 +195,16 @@ export function createSolver(ctx) {
 
     const bottles = readStateFromInput();
     const validationError = validateInput(bottles);
-    if (validationError) return showError(validationError);
+    if (validationError) {
+      showError(validationError);
+      return;
+    }
 
-    const mode = el("modeSel").value === "optimal" ? "optimal" : "fast";
-    const displayOptions = {
-      shortMoves: el("shortMoves").checked,
-      showStates: el("showStates").checked,
+    const mode: SolverMode =
+      el<HTMLSelectElement>("modeSel").value === "optimal" ? "optimal" : "fast";
+    const displayOptions: DisplayOptions = {
+      shortMoves: el<HTMLInputElement>("shortMoves").checked,
+      showStates: el<HTMLInputElement>("showStates").checked,
     };
 
     state.selectedLayer = null;
@@ -156,7 +219,7 @@ export function createSolver(ctx) {
     try {
       activeWorker = makeWorker();
       setSolveControl(true);
-      activeWorker.onmessage = (event) => {
+      activeWorker.onmessage = (event: MessageEvent<SolverWorkerMessage>) => {
         const message = event.data;
         if (!message || message.requestId !== activeRequestId) return;
         if (message.type === "progress") {
@@ -176,21 +239,22 @@ export function createSolver(ctx) {
           performance.now() - startedAt,
         );
       };
-      activeWorker.onerror = (event) => {
-        event.preventDefault?.();
+      activeWorker.onerror = (event: ErrorEvent) => {
+        event.preventDefault();
         showWorkerFailure(requestId, event.message);
       };
-      activeWorker.postMessage({
+      const request: SolveWorkerRequest = {
         type: "solve",
         requestId,
         bottles,
         mode,
         cap: CAP,
-      });
+      };
+      activeWorker.postMessage(request);
     } catch (error) {
       releaseWorker();
       setSolveControl(false);
-      showError(`Solver error: ${error?.message || String(error)}`);
+      showError(`Solver error: ${getErrorMessage(error)}`);
       el("status").textContent = "Search failed.";
     }
   }

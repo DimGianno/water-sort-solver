@@ -78,7 +78,7 @@
 - **Reason:** Shared puzzle structures and asynchronous worker messages benefit from compile-time contracts without requiring a framework rewrite.
 - **Expected outcome:** Complete the migration module by module while preserving browser behavior and keeping each review focused.
 - **Affected area:** Build tooling, constants, validation, solver modules, worker messaging, and tests
-- **Status:** In progress - Vite, constants, validation, shared solver types, the A* solver core, and the worker boundary are complete; UI controllers remain JavaScript.
+- **Status:** In progress - Vite, constants, validation, shared solver types, the A* solver core, and both sides of the worker boundary are complete; the builder, replay, import/export, and application entry modules remain JavaScript.
 
 ### Move A* search into a Web Worker
 

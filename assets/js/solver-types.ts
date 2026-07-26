@@ -24,6 +24,11 @@ export interface SolverFailure {
 
 export type SolverResult = SolverSuccess | SolverFailure;
 
+export interface ReplaySolution {
+  moves: SolverMove[];
+  states: PuzzleState[];
+}
+
 export interface SolverOptions {
   cap?: number;
   onProgress?: (expanded: number) => void;
