@@ -15,6 +15,15 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 
 ## Latest Updates
 
+### 2026-07-26 - One-click sample and faster puzzle rebuilding
+
+- **Type:** Improvement
+- **Status:** Completed
+- **Summary:** Added a challenging one-click sample puzzle and a bulk clear action for the builder.
+- **User impact:** First-time visitors can reach a real solution replay immediately, compare the Fast and Optimal-ish search tradeoff on a substantial level, and empty every editable bottle without rebuilding their configuration.
+- **Technical impact:** Routed a verified 14-bottle sample through the existing import, validation, worker-solver, and replay flow; added comparative solver guarantees, replay reveal behavior, bulk inventory restoration, unchecked display-option defaults, and browser coverage.
+- **Related area:** Onboarding and puzzle entry
+
 ### 2026-07-26 - Unified local quality and preview workflow
 
 - **Type:** Tooling
@@ -65,8 +74,10 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - Configure puzzles with 4 to 14 bottles and two reserved helper bottles.
 - Select the exact number of colors required by the chosen bottle count.
 - Enter bottle contents with layer-first automatic advancement or color-first painting.
+- Load, solve, and reveal a curated sample puzzle with one action.
 - Limit every selected color to four pieces with live remaining counters.
 - Clear or replace layers while restoring the corresponding color inventory.
+- Clear all editable bottles at once without changing the puzzle configuration.
 - Validate bottle capacity, helper bottles, selected colors, and color counts continuously.
 - Solve puzzles with fast or optimal-ish A* search modes without blocking the interface.
 - Track expanded-state progress and cancel an active search safely.

@@ -214,6 +214,7 @@ export function createImportExport(ctx) {
   }
 
   return {
+    applyImport,
     showIO,
     hideIO,
     onExport,

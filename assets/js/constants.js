@@ -16,3 +16,25 @@ export const COLOR_PALETTE = {
 };
 
 export const DEFAULT_COLORS = Object.keys(COLOR_PALETTE);
+
+export const SAMPLE_PUZZLE = {
+  v: 1,
+  n: 14,
+  colors: DEFAULT_COLORS,
+  layers: [
+    ["Green", "Yellow", "Dark Green", "Pink"],
+    ["Blue", "Gray", "Light Blue", "Brown"],
+    ["Brown", "Purple", "Brown", "Light Green"],
+    ["Light Blue", "Blue", "Light Green", "Purple"],
+    ["Dark Green", "Light Green", "Gray", "Green"],
+    ["Purple", "Red", "Light Green", "Pink"],
+    ["Red", "Orange", "Green", "Pink"],
+    ["Brown", "Dark Green", "Light Blue", "Orange"],
+    ["Red", "Gray", "Blue", "Orange"],
+    ["Yellow", "Dark Green", "Red", "Orange"],
+    ["Yellow", "Light Blue", "Blue", "Green"],
+    ["Purple", "Gray", "Pink", "Yellow"],
+    ["", "", "", ""],
+    ["", "", "", ""],
+  ],
+};

@@ -1,4 +1,9 @@
-import { CAP, COLOR_PALETTE, DEFAULT_COLORS } from "./constants.js";
+import {
+  CAP,
+  COLOR_PALETTE,
+  DEFAULT_COLORS,
+  SAMPLE_PUZZLE,
+} from "./constants.js";
 import { createValidation } from "./validation.js";
 import { createReplay } from "./replay.js";
 import { createBuilder } from "./builder.js";
@@ -56,6 +61,7 @@ const state = {
   fillMode: "layer",
   activeColor: null,
   isSolving: false,
+  revealReplayOnSolve: false,
 };
 
 function showError(msg) {
@@ -88,7 +94,7 @@ function resetAll() {
   ctx.cancelSolve?.({ silent: true });
   el("numBottles").value = 11;
   el("showStates").checked = false;
-  el("shortMoves").checked = true;
+  el("shortMoves").checked = false;
   el("modeSel").value = "fast";
 
   el("colorChecklist")
@@ -104,6 +110,7 @@ function resetAll() {
   state.lastSolution = null;
   state.fillMode = "layer";
   state.activeColor = null;
+  state.revealReplayOnSolve = false;
 
   const bottleArea = el("bottleArea");
   bottleArea.className = "empty-stage";
@@ -163,6 +170,12 @@ el("ioApplyBtn").addEventListener("click", ctx.onIOApply);
 
 el("selectAllBtn").addEventListener("click", ctx.selectAllColors);
 el("buildBtn").addEventListener("click", ctx.buildBottlesUI);
+el("sampleBtn").addEventListener("click", () => {
+  ctx.hideIO();
+  ctx.applyImport(SAMPLE_PUZZLE);
+  state.revealReplayOnSolve = true;
+  ctx.solve();
+});
 
 el("exportBtn").addEventListener("click", ctx.onExport);
 

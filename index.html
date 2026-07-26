@@ -110,6 +110,9 @@
               Build puzzle <span aria-hidden="true">→</span>
             </button>
           </div>
+          <button id="sampleBtn" class="secondary-btn sample-btn" type="button">
+            Try a sample
+          </button>
           <div id="buildMsg" class="small" aria-live="polite"></div>
           <div id="error" class="warn" role="alert"></div>
 
@@ -193,14 +196,24 @@
               <div class="palette-panel">
                 <div class="palette-heading">
                   <span id="paletteTitle">Choose a color</span>
-                  <button
-                    id="clearLayerBtn"
-                    class="text-btn"
-                    type="button"
-                    disabled
-                  >
-                    Clear layer
-                  </button>
+                  <div class="palette-actions">
+                    <button
+                      id="clearLayerBtn"
+                      class="text-btn"
+                      type="button"
+                      disabled
+                    >
+                      Clear layer
+                    </button>
+                    <button
+                      id="clearAllBtn"
+                      class="text-btn"
+                      type="button"
+                      disabled
+                    >
+                      Clear all bottles
+                    </button>
+                  </div>
                 </div>
                 <div
                   id="fillPalette"
@@ -227,34 +240,36 @@
                 </p>
               </div>
             </div>
-            <div class="solve-controls">
-              <div class="mode-field">
-                <label for="modeSel">Search mode</label>
-                <select id="modeSel" class="ui-select">
-                  <option value="fast" selected>Fast</option>
-                  <option value="optimal">Optimal-ish</option>
-                </select>
+            <div class="solve-actions">
+              <div class="solve-controls">
+                <div class="mode-field">
+                  <label for="modeSel">Search mode</label>
+                  <select id="modeSel" class="ui-select">
+                    <option value="fast" selected>Fast</option>
+                    <option value="optimal">Optimal-ish</option>
+                  </select>
+                </div>
+                <label class="check-option"
+                  ><input id="showStates" type="checkbox" /><span
+                    >Show states</span
+                  ></label
+                >
+                <label class="check-option"
+                  ><input id="shortMoves" type="checkbox" /><span
+                    >Concise moves</span
+                  ></label
+                >
+                <button
+                  id="solveBtn"
+                  class="primary-btn solve-btn"
+                  type="button"
+                  disabled
+                >
+                  Solve puzzle <span aria-hidden="true">→</span>
+                </button>
               </div>
-              <label class="check-option"
-                ><input id="showStates" type="checkbox" /><span
-                  >Show states</span
-                ></label
-              >
-              <label class="check-option"
-                ><input id="shortMoves" type="checkbox" checked /><span
-                  >Concise moves</span
-                ></label
-              >
-              <button
-                id="solveBtn"
-                class="primary-btn solve-btn"
-                type="button"
-                disabled
-              >
-                Solve puzzle <span aria-hidden="true">→</span>
-              </button>
+              <div id="success" class="ok" role="status"></div>
             </div>
-            <div id="success" class="ok" role="status"></div>
           </section>
         </div>
       </section>
@@ -273,7 +288,7 @@
           </div>
         </article>
 
-        <article class="result-card replay-card">
+        <article id="replayCard" class="result-card replay-card">
           <div class="result-heading">
             <div>
               <p class="kicker">Visual guide</p>

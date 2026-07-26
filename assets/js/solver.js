@@ -51,6 +51,7 @@ export function createSolver(ctx) {
     activeRequestId++;
     releaseWorker();
     setSolveControl(false);
+    state.revealReplayOnSolve = false;
 
     if (!options.silent) {
       showError("");
@@ -72,6 +73,7 @@ export function createSolver(ctx) {
   function showWorkerFailure(requestId, message) {
     if (!finishRequest(requestId)) return;
     const detail = message || "Unknown worker error.";
+    state.revealReplayOnSolve = false;
     showError(`Solver error: ${detail}`);
     el("status").textContent = "Search failed.";
     el("output").textContent = `Solver error: ${detail}`;
@@ -79,6 +81,7 @@ export function createSolver(ctx) {
 
   function renderSolution(bottles, result, options, elapsed) {
     if (!result.ok) {
+      state.revealReplayOnSolve = false;
       showError(`Failed: ${result.reason}`);
       el("status").textContent = "Search finished without a solution.";
       el("output").textContent =
@@ -109,6 +112,16 @@ export function createSolver(ctx) {
 
     el("output").textContent = (text || "Already solved.").trimEnd();
     showReplay({ moves: result.moves, states });
+    if (state.revealReplayOnSolve) {
+      state.revealReplayOnSolve = false;
+      const reduceMotion = globalThis.matchMedia?.(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      el("replayCard").scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }
   }
 
   function solve() {

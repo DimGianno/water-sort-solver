@@ -5,8 +5,10 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 ## Highlights
 
 - Build levels with 4–14 bottles and a fixed capacity of four layers
+- Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
 - Track each color's four available pieces with live counters
+- Clear one layer or every editable bottle while rebuilding a level
 - Choose from a color palette with live input validation
 - Solve with fast or optimal-ish A* search modes in a responsive Web Worker
 - Follow expanded-state progress and cancel long searches safely
@@ -45,7 +47,7 @@ npm run test:e2e
 npm run test:all
 ```
 
-The suites cover puzzle validation, import/export handling, solver outcomes, both fill modes, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
+The suites cover puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
 

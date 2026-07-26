@@ -8,13 +8,13 @@
 
 ## Known Limitations
 
-### Puzzle entry is manual or code-based
+### Personal puzzle entry is manual or code-based
 
 - **Area:** Input
 - **Severity:** Medium
-- **User impact:** Users must recreate every bottle or import an existing Chromaflow code instead of capturing a game screenshot.
+- **User impact:** Users must recreate their own bottles or import an existing Chromaflow code instead of capturing a game screenshot; the ready-made sample only demonstrates the solve-and-replay flow.
 - **Technical impact:** The application has no image recognition, color sampling, or screenshot validation pipeline.
-- **Current workaround:** Use either fill mode to enter the level manually, then export it for later reuse.
+- **Current workaround:** Try the curated sample for an immediate demo, or use either fill mode to enter a personal level manually and export it for later reuse.
 - **Suggested resolution:** Add an optional screenshot-import flow with editable recognition results before building the solver state.
 - **Status:** Known
 
@@ -53,10 +53,10 @@
 ### Provide ready-to-try sample puzzles
 
 - **Priority:** Medium
-- **Status:** Idea
+- **Status:** Completed
 - **Value:** Lets first-time visitors experience solving and replay without manually entering a full level.
-- **Scope:** Add a small curated sample selector that loads valid beginner, intermediate, and advanced puzzle states.
-- **Dependencies:** Verified solvable examples and concise placement in the setup flow
+- **Scope:** Add a curated sample action that loads a challenging puzzle, runs the real solver, and reveals replay automatically.
+- **Dependencies:** Completed with a verified 14-bottle example that demonstrates the Fast versus Optimal-ish tradeoff
 - **Complexity:** Small
 - **Portfolio relevance:** Improves product onboarding and makes the solver immediately demonstrable to portfolio reviewers.
 
@@ -108,7 +108,7 @@
    - Included work: Browser test setup, fill-mode and counter scenarios, import/export fixtures, solving, replay, and representative phone and desktop viewports.
    - Completion criteria: Both fill modes and the complete solve/replay journey pass reliably in the automated quality gate.
 
-3. **Faster puzzle onboarding**
+3. **Faster puzzle onboarding — In progress**
    - Goal: Reduce the time between opening Chromaflow and seeing a solution.
-   - Included work: Curated samples followed by screenshot-assisted entry with editable recognition results.
+   - Included work: One-click curated sample completed; screenshot-assisted entry with editable recognition results remains planned.
    - Completion criteria: New visitors can run a sample immediately, and supported screenshots produce a reviewable puzzle state before solving.
