@@ -8,16 +8,6 @@
 
 ## Known Limitations
 
-### Search runs on the browser's main thread
-
-- **Area:** Performance
-- **Severity:** High
-- **User impact:** Difficult puzzles may temporarily make the interface feel unresponsive while the solver explores a large state space.
-- **Technical impact:** A* search is synchronous and can expand up to the mode-specific state limit without yielding control to rendering or input handling.
-- **Current workaround:** Use Fast mode first and reserve Optimal-ish mode for levels where a shorter solution matters.
-- **Suggested resolution:** Move search into a Web Worker and stream progress updates back to the interface.
-- **Status:** Known
-
 ### Puzzle entry is manual or code-based
 
 - **Area:** Input
@@ -86,9 +76,9 @@
 
 - **Priority:** High
 - **Reason:** Large synchronous searches can block rendering and input on mobile devices.
-- **Expected outcome:** The interface stays responsive, progress remains visible, and long searches can be cancelled safely.
-- **Affected area:** `assets/js/solver.js`, application state, solve controls, and worker messaging
-- **Status:** Idea
+- **Expected outcome:** Achieved with a responsive interface, expanded-state progress, immediate cancellation, automatic mutation cancellation, and stale-result protection.
+- **Affected area:** Solver core, worker messaging, application state, and solve controls
+- **Status:** Completed
 
 ### Maintain automated browser interaction tests
 
@@ -102,13 +92,13 @@
 
 - **Priority:** Medium
 - **Reason:** Search modes have fixed expansion ceilings but users cannot stop a search once it begins.
-- **Expected outcome:** Users can cancel safely, understand current progress, and receive clearer guidance when the state limit is reached.
-- **Affected area:** `assets/js/solver.js`, solve status, controls, and eventual worker integration
-- **Status:** Idea
+- **Expected outcome:** Achieved with a Solve/Cancel control, live expanded-state status, existing mode-specific limits, and clear completion or failure feedback.
+- **Affected area:** Solver controller, solve status, and controls
+- **Status:** Completed
 
 ## Suggested Next Milestones
 
-1. **Responsive search execution**
+1. **Responsive search execution — Completed 2026-07-26**
    - Goal: Keep Chromaflow interactive throughout difficult searches.
    - Included work: Web Worker extraction, progress events, cancellation, state-limit feedback, and solver regression tests.
    - Completion criteria: Search never blocks interface input, can be cancelled cleanly, and returns the same valid move sequences as the current implementation.

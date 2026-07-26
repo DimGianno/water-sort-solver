@@ -43,7 +43,6 @@ export function createReplay(ctx) {
     const grid = el("replayGrid");
     grid.innerHTML = "";
 
-
     grid.classList.add("board");
 
     // Fixed 2-row layout (match the builder board): if odd, row 1 gets the extra.
@@ -91,8 +90,6 @@ export function createReplay(ctx) {
       targetRow.appendChild(rb);
     }
 
-
-
     el("prevStepBtn").disabled = state.replayIndex === 0;
     el("nextStepBtn").disabled = state.replayIndex === stepMax;
   }
@@ -105,7 +102,10 @@ export function createReplay(ctx) {
 
   function stepNext() {
     if (!state.lastSolution) return;
-    state.replayIndex = Math.min(state.lastSolution.states.length - 1, state.replayIndex + 1);
+    state.replayIndex = Math.min(
+      state.lastSolution.states.length - 1,
+      state.replayIndex + 1,
+    );
     renderReplay();
   }
 

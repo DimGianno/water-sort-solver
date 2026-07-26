@@ -8,8 +8,11 @@ function encodePayload(payload) {
   return `WS1:${Buffer.from(JSON.stringify(payload), "utf8").toString("base64")}`;
 }
 
-function createFixture() {
-  const checkboxes = DEFAULT_COLORS.map((value) => ({ value, checked: value === "Red" || value === "Blue" }));
+function createFixture(options = {}) {
+  const checkboxes = DEFAULT_COLORS.map((value) => ({
+    value,
+    checked: value === "Red" || value === "Blue",
+  }));
   const elements = {
     numBottles: { value: "4" },
     colorChecklist: {
@@ -24,8 +27,20 @@ function createFixture() {
     },
     ioArea: { hidden: true },
     ioMsg: { textContent: "" },
-    ioText: { value: "" },
+    ioText: {
+      value: "",
+      focused: false,
+      selected: false,
+      focus() {
+        this.focused = true;
+      },
+      select() {
+        this.selected = true;
+      },
+      setSelectionRange() {},
+    },
     ioApplyBtn: { dataset: {} },
+    toast: { textContent: "", dataset: {}, hidden: true },
   };
   const originalLayers = [
     ["Blue", "Blue", "Red", "Red"],
@@ -46,7 +61,10 @@ function createFixture() {
     state,
     el: (id) => elements[id],
     showError: (message) => calls.push(["error", message]),
-    selectedColors: () => checkboxes.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value),
+    selectedColors: () =>
+      checkboxes
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value),
     updateSelectAllVisibility: () => calls.push(["select-all"]),
     updateColorLimitUI: () => calls.push(["color-limit"]),
     buildBottlesUI: () => calls.push(["build"]),
@@ -55,22 +73,31 @@ function createFixture() {
     renderPalette: () => calls.push(["palette"]),
     runContinuousValidation: () => calls.push(["validation"]),
     updateSolveEnabled: () => calls.push(["solve-enabled"]),
+    clipboard: options.clipboard,
+    copyCommand: options.copyCommand,
   });
 
   return { calls, checkboxes, elements, io, originalLayers, state };
 }
 
-test("exported puzzle codes round-trip through the import workflow", () => {
+test("exported puzzle codes are copied and round-trip through the import workflow", async () => {
   const originalCss = globalThis.CSS;
   globalThis.CSS = { escape: (value) => value };
 
   try {
-    const { checkboxes, elements, io, originalLayers, state } = createFixture();
-    io.onExport();
+    const copied = [];
+    const { checkboxes, elements, io, originalLayers, state } = createFixture({
+      clipboard: { writeText: async (value) => copied.push(value) },
+    });
+    await io.onExport();
     const exportedCode = elements.ioText.value;
 
     assert.match(exportedCode, /^WS1:/);
-    assert.equal(elements.ioMsg.textContent, "Export ready. Copy it.");
+    assert.deepEqual(copied, [exportedCode]);
+    assert.equal(elements.ioArea.hidden, false);
+    assert.equal(elements.ioMsg.textContent, "Export copied to clipboard.");
+    assert.equal(elements.toast.textContent, "Puzzle copied to clipboard");
+    assert.equal(elements.toast.hidden, false);
 
     state.bottleLayers = [];
     checkboxes.forEach((checkbox) => {
@@ -83,8 +110,10 @@ test("exported puzzle codes round-trip through the import workflow", () => {
     assert.equal(elements.ioMsg.textContent, "Imported successfully.");
     assert.deepEqual(state.bottleLayers, originalLayers);
     assert.deepEqual(
-      checkboxes.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value),
-      ["Red", "Blue"]
+      checkboxes
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value),
+      ["Red", "Blue"],
     );
     assert.equal(state.selectedLayer, null);
     assert.equal(state.openPopoverBottle, null);
@@ -92,6 +121,43 @@ test("exported puzzle codes round-trip through the import workflow", () => {
   } finally {
     globalThis.CSS = originalCss;
   }
+});
+
+test("export falls back to textarea copying and gives manual guidance when copying fails", async (t) => {
+  await t.test("uses the selected textarea fallback", async () => {
+    const { elements, io } = createFixture({
+      clipboard: { writeText: async () => Promise.reject(new Error("Denied")) },
+      copyCommand: () => true,
+    });
+
+    await io.onExport();
+
+    assert.equal(elements.ioText.focused, true);
+    assert.equal(elements.ioText.selected, true);
+    assert.equal(elements.ioMsg.textContent, "Export copied to clipboard.");
+  });
+
+  await t.test(
+    "keeps the code selected when all copy methods fail",
+    async () => {
+      const { elements, io } = createFixture({
+        clipboard: {
+          writeText: async () => Promise.reject(new Error("Denied")),
+        },
+        copyCommand: () => false,
+      });
+
+      await io.onExport();
+
+      assert.equal(elements.ioText.selected, true);
+      assert.equal(
+        elements.ioMsg.textContent,
+        "Automatic copy failed. Copy the selected code manually.",
+      );
+      assert.equal(elements.toast.textContent, "Could not copy automatically");
+      assert.equal(elements.toast.dataset.tone, "warning");
+    },
+  );
 });
 
 test("import reports invalid codes without changing the puzzle", async (t) => {
@@ -102,7 +168,10 @@ test("import reports invalid codes without changing the puzzle", async (t) => {
 
     io.onIOApply();
 
-    assert.equal(elements.ioMsg.textContent, "Import failed: Invalid code (missing WS1: prefix).");
+    assert.equal(
+      elements.ioMsg.textContent,
+      "Import failed: Invalid code (missing WS1: prefix).",
+    );
     assert.deepEqual(state.bottleLayers, originalLayers);
   });
 
@@ -113,7 +182,10 @@ test("import reports invalid codes without changing the puzzle", async (t) => {
 
     io.onIOApply();
 
-    assert.equal(elements.ioMsg.textContent, "Import failed: Invalid code payload.");
+    assert.equal(
+      elements.ioMsg.textContent,
+      "Import failed: Invalid code payload.",
+    );
   });
 
   await t.test("rejects unsupported payload versions", () => {
@@ -123,7 +195,10 @@ test("import reports invalid codes without changing the puzzle", async (t) => {
 
     io.onIOApply();
 
-    assert.equal(elements.ioMsg.textContent, "Import failed: Unsupported version.");
+    assert.equal(
+      elements.ioMsg.textContent,
+      "Import failed: Unsupported version.",
+    );
   });
 
   await t.test("rejects colors that exceed bottle capacity", () => {
@@ -138,6 +213,9 @@ test("import reports invalid codes without changing the puzzle", async (t) => {
 
     io.onIOApply();
 
-    assert.equal(elements.ioMsg.textContent, "Import failed: Too many colors in import for 4 bottles (max 2).");
+    assert.equal(
+      elements.ioMsg.textContent,
+      "Import failed: Too many colors in import for 4 bottles (max 2).",
+    );
   });
 });

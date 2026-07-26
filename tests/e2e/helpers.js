@@ -12,19 +12,27 @@ export async function openFourBottleBuilder(page) {
 }
 
 export function paletteColor(page, color) {
-  return page.getByRole("button", { name: new RegExp(`^${color}, \\d+ remaining$`) });
+  return page.getByRole("button", {
+    name: new RegExp(`^${color}, \\d+ remaining$`),
+  });
 }
 
 export async function placeColor(page, color, count) {
   for (let index = 0; index < count; index++) {
     const currentButton = paletteColor(page, color);
     const accessibleName = await currentButton.getAttribute("aria-label");
-    const remaining = Number.parseInt(accessibleName?.match(/(\d+) remaining$/)?.[1] || "0", 10);
+    const remaining = Number.parseInt(
+      accessibleName?.match(/(\d+) remaining$/)?.[1] || "0",
+      10,
+    );
     expect(remaining).toBeGreaterThan(0);
     await currentButton.click();
     if (remaining > 1) {
       await expect(
-        page.getByRole("button", { name: `${color}, ${remaining - 1} remaining`, exact: true })
+        page.getByRole("button", {
+          name: `${color}, ${remaining - 1} remaining`,
+          exact: true,
+        }),
       ).toBeVisible();
     } else {
       await expect(paletteColor(page, color)).toHaveCount(0);
@@ -36,7 +44,13 @@ export async function fillSolvablePuzzle(page) {
   await placeColor(page, "Blue", 2);
   await placeColor(page, "Red", 4);
   await placeColor(page, "Blue", 2);
-  await expect(page.locator("#fillPalette")).toHaveText(/All color pieces are placed/);
-  await expect(page.locator("#validationMsg")).toHaveText("Input looks valid. You can solve.");
-  await expect(page.getByRole("button", { name: /Solve puzzle/ })).toBeEnabled();
+  await expect(page.locator("#fillPalette")).toHaveText(
+    /All color pieces are placed/,
+  );
+  await expect(page.locator("#validationMsg")).toHaveText(
+    "Input looks valid. You can solve.",
+  );
+  await expect(
+    page.getByRole("button", { name: /Solve puzzle/ }),
+  ).toBeEnabled();
 }
