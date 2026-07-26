@@ -15,6 +15,15 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 
 ## Latest Updates
 
+### 2026-07-26 - Stable cross-browser verification
+
+- **Type:** Quality
+- **Status:** Completed
+- **Summary:** Stabilized browser-suite startup and refreshed verified Chromium visual baselines.
+- **User impact:** Contributors can rely on a fully green browser matrix without mistaking restricted Firefox process failures or stale one-pixel snapshots for product regressions.
+- **Technical impact:** Moved test-server ownership into Playwright on a dedicated port, preserved strict screenshot tolerances, and verified all 36 checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit.
+- **Related area:** Testing and developer experience
+
 ### 2026-07-26 - One-click sample and faster puzzle rebuilding
 
 - **Type:** Improvement
@@ -48,7 +57,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - **Status:** Completed
 - **Summary:** Added automated core-logic and cross-browser product-flow coverage.
 - **User impact:** Logic, interaction, and responsive-layout regressions are detected before changes reach the stable branch.
-- **Technical impact:** Added Node test-runner coverage plus 28 Playwright checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit, with Chromium visual baselines and a GitHub Actions quality gate.
+- **Technical impact:** Added Node test-runner coverage plus 36 Playwright checks across desktop Chromium, desktop Firefox, mobile Chromium, and mobile WebKit, with Chromium visual baselines and a GitHub Actions quality gate.
 - **Related area:** Testing
 
 ### 2026-07-25 - Mobile-first dual-mode puzzle builder

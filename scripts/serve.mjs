@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const host = "127.0.0.1";
-const port = 4173;
+const defaultPort = 4173;
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -14,7 +14,10 @@ const contentTypes = {
   ".png": "image/png",
 };
 
-export function startServer({ rootDirectory = projectRoot } = {}) {
+export function startServer({
+  rootDirectory = projectRoot,
+  port = defaultPort,
+} = {}) {
   const server = createServer(async (request, response) => {
     const url = new URL(request.url || "/", `http://${host}:${port}`);
     const pathname = decodeURIComponent(
@@ -57,6 +60,9 @@ if (isDirectRun) {
   const rootDirectory = process.argv.includes("--dist")
     ? resolve(projectRoot, "dist")
     : projectRoot;
-  await startServer({ rootDirectory });
+  const portFlagIndex = process.argv.indexOf("--port");
+  const requestedPort = Number.parseInt(process.argv[portFlagIndex + 1], 10);
+  const port = Number.isInteger(requestedPort) ? requestedPort : defaultPort;
+  await startServer({ rootDirectory, port });
   console.log(`Chromaflow preview listening at http://${host}:${port}`);
 }

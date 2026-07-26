@@ -3,7 +3,6 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
   outputDir: "test-results",
-  globalSetup: "./tests/e2e/global-setup.js",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -16,10 +15,15 @@ export default defineConfig({
     },
   },
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: "http://127.0.0.1:4174",
     colorScheme: "light",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
+  },
+  webServer: {
+    command: "node scripts/serve.mjs --port 4174",
+    url: "http://127.0.0.1:4174",
+    reuseExistingServer: !process.env.CI,
   },
   projects: [
     {

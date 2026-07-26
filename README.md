@@ -47,6 +47,8 @@ npm run test:e2e
 npm run test:all
 ```
 
+Playwright starts and stops its dedicated test server automatically on `http://127.0.0.1:4174`.
+
 The suites cover puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
