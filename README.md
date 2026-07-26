@@ -46,6 +46,8 @@ npm run test:e2e
 npm run test:all
 ```
 
+Core tests use Vitest and run once through `npm test`. During development, use `npm run test:watch` to rerun affected tests as files change. Playwright remains responsible for end-to-end browser coverage.
+
 Run the TypeScript compiler without emitting files:
 
 ```bash
@@ -91,11 +93,12 @@ assets/js/io.ts           Typed puzzle import and export
 assets/js/validation.ts   Typed input validation
 assets/js/constants.ts    Typed capacity and color definitions
 playwright.config.js      Browser projects and Vite test-server configuration
+vitest.config.ts          Typed core-test configuration
 scripts/build.mjs         Vite production and server-artifact build
-tests/                    Core-logic and browser interaction tests
-tsconfig.json             Incremental TypeScript checking configuration
+tests/                    TypeScript core tests and Playwright browser tests
+tsconfig.json             Application and core-test TypeScript checking
 ```
 
 ## Built with
 
-Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Playwright is used for browser testing.
+Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Vitest runs typed core tests and Playwright provides cross-browser end-to-end coverage.

@@ -1,14 +1,21 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, expect, test } from "vitest";
 
 import { CAP, DEFAULT_COLORS } from "../assets/js/constants.ts";
 import { createImportExport } from "../assets/js/io.ts";
 
-function encodePayload(payload) {
-  return `WS1:${Buffer.from(JSON.stringify(payload), "utf8").toString("base64")}`;
+interface FixtureOptions {
+  clipboard?: { writeText: (value: string) => Promise<void> };
+  copyCommand?: (command: string) => boolean;
 }
 
-function createFixture(options = {}) {
+function encodePayload(payload: unknown): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return `WS1:${btoa(binary)}`;
+}
+
+function createFixture(options: FixtureOptions = {}) {
   const checkboxes = DEFAULT_COLORS.map((value) => ({
     value,
     checked: value === "Red" || value === "Blue",
@@ -16,11 +23,11 @@ function createFixture(options = {}) {
   const elements = {
     numBottles: { value: "4" },
     colorChecklist: {
-      querySelectorAll(selector) {
+      querySelectorAll(selector: string) {
         if (selector === 'input[type="checkbox"]') return checkboxes;
         return [];
       },
-      querySelector(selector) {
+      querySelector(selector: string) {
         const value = selector.match(/value="(.+)"/)?.[1];
         return checkboxes.find((checkbox) => checkbox.value === value) ?? null;
       },
@@ -39,8 +46,8 @@ function createFixture(options = {}) {
       },
       setSelectionRange() {},
     },
-    ioApplyBtn: { dataset: {} },
-    toast: { textContent: "", dataset: {}, hidden: true },
+    ioApplyBtn: { dataset: { mode: "" } },
+    toast: { textContent: "", dataset: { tone: "" }, hidden: true },
   };
   const originalLayers = [
     ["Blue", "Blue", "Red", "Red"],
@@ -54,13 +61,13 @@ function createFixture(options = {}) {
     openPopoverBottle: 1,
     inputHistory: ["change"],
   };
-  const calls = [];
+  const calls: Array<[string, string?]> = [];
   const io = createImportExport({
     CAP,
     DEFAULT_COLORS,
     state,
-    el: (id) => elements[id],
-    showError: (message) => calls.push(["error", message]),
+    el: (id: string) => elements[id as keyof typeof elements],
+    showError: (message: string) => calls.push(["error", message]),
     selectedColors: () =>
       checkboxes
         .filter((checkbox) => checkbox.checked)
@@ -75,29 +82,33 @@ function createFixture(options = {}) {
     updateSolveEnabled: () => calls.push(["solve-enabled"]),
     clipboard: options.clipboard,
     copyCommand: options.copyCommand,
-  });
+  } as unknown as Parameters<typeof createImportExport>[0]);
 
   return { calls, checkboxes, elements, io, originalLayers, state };
 }
 
 test("exported puzzle codes are copied and round-trip through the import workflow", async () => {
   const originalCss = globalThis.CSS;
-  globalThis.CSS = { escape: (value) => value };
+  globalThis.CSS = { escape: (value: string) => value } as typeof CSS;
 
   try {
-    const copied = [];
+    const copied: string[] = [];
     const { checkboxes, elements, io, originalLayers, state } = createFixture({
-      clipboard: { writeText: async (value) => copied.push(value) },
+      clipboard: {
+        writeText: async (value) => {
+          copied.push(value);
+        },
+      },
     });
     await io.onExport();
     const exportedCode = elements.ioText.value;
 
-    assert.match(exportedCode, /^WS1:/);
-    assert.deepEqual(copied, [exportedCode]);
-    assert.equal(elements.ioArea.hidden, false);
-    assert.equal(elements.ioMsg.textContent, "Export copied to clipboard.");
-    assert.equal(elements.toast.textContent, "Puzzle copied to clipboard");
-    assert.equal(elements.toast.hidden, false);
+    expect(exportedCode).toMatch(/^WS1:/);
+    expect(copied).toEqual([exportedCode]);
+    expect(elements.ioArea.hidden).toBe(false);
+    expect(elements.ioMsg.textContent).toBe("Export copied to clipboard.");
+    expect(elements.toast.textContent).toBe("Puzzle copied to clipboard");
+    expect(elements.toast.hidden).toBe(false);
 
     state.bottleLayers = [];
     checkboxes.forEach((checkbox) => {
@@ -107,24 +118,23 @@ test("exported puzzle codes are copied and round-trip through the import workflo
     elements.ioText.value = exportedCode;
     io.onIOApply();
 
-    assert.equal(elements.ioMsg.textContent, "Imported successfully.");
-    assert.deepEqual(state.bottleLayers, originalLayers);
-    assert.deepEqual(
+    expect(elements.ioMsg.textContent).toBe("Imported successfully.");
+    expect(state.bottleLayers).toEqual(originalLayers);
+    expect(
       checkboxes
         .filter((checkbox) => checkbox.checked)
         .map((checkbox) => checkbox.value),
-      ["Red", "Blue"],
-    );
-    assert.equal(state.selectedLayer, null);
-    assert.equal(state.openPopoverBottle, null);
-    assert.deepEqual(state.inputHistory, []);
+    ).toEqual(["Red", "Blue"]);
+    expect(state.selectedLayer).toBeNull();
+    expect(state.openPopoverBottle).toBeNull();
+    expect(state.inputHistory).toEqual([]);
   } finally {
     globalThis.CSS = originalCss;
   }
 });
 
-test("export falls back to textarea copying and gives manual guidance when copying fails", async (t) => {
-  await t.test("uses the selected textarea fallback", async () => {
+describe("export falls back to textarea copying and gives manual guidance when copying fails", () => {
+  test("uses the selected textarea fallback", async () => {
     const { elements, io } = createFixture({
       clipboard: { writeText: async () => Promise.reject(new Error("Denied")) },
       copyCommand: () => true,
@@ -132,76 +142,69 @@ test("export falls back to textarea copying and gives manual guidance when copyi
 
     await io.onExport();
 
-    assert.equal(elements.ioText.focused, true);
-    assert.equal(elements.ioText.selected, true);
-    assert.equal(elements.ioMsg.textContent, "Export copied to clipboard.");
+    expect(elements.ioText.focused).toBe(true);
+    expect(elements.ioText.selected).toBe(true);
+    expect(elements.ioMsg.textContent).toBe("Export copied to clipboard.");
   });
 
-  await t.test(
-    "keeps the code selected when all copy methods fail",
-    async () => {
-      const { elements, io } = createFixture({
-        clipboard: {
-          writeText: async () => Promise.reject(new Error("Denied")),
-        },
-        copyCommand: () => false,
-      });
+  test("keeps the code selected when all copy methods fail", async () => {
+    const { elements, io } = createFixture({
+      clipboard: {
+        writeText: async () => Promise.reject(new Error("Denied")),
+      },
+      copyCommand: () => false,
+    });
 
-      await io.onExport();
+    await io.onExport();
 
-      assert.equal(elements.ioText.selected, true);
-      assert.equal(
-        elements.ioMsg.textContent,
-        "Automatic copy failed. Copy the selected code manually.",
-      );
-      assert.equal(elements.toast.textContent, "Could not copy automatically");
-      assert.equal(elements.toast.dataset.tone, "warning");
-    },
-  );
+    expect(elements.ioText.selected).toBe(true);
+    expect(elements.ioMsg.textContent).toBe(
+      "Automatic copy failed. Copy the selected code manually.",
+    );
+    expect(elements.toast.textContent).toBe("Could not copy automatically");
+    expect(elements.toast.dataset.tone).toBe("warning");
+  });
 });
 
-test("import reports invalid codes without changing the puzzle", async (t) => {
-  await t.test("rejects a missing version prefix", () => {
+describe("import reports invalid codes without changing the puzzle", () => {
+  test("rejects a missing version prefix", () => {
     const { elements, io, originalLayers, state } = createFixture();
     elements.ioApplyBtn.dataset.mode = "import";
     elements.ioText.value = "not-a-code";
 
     io.onIOApply();
 
-    assert.equal(
-      elements.ioMsg.textContent,
+    expect(elements.ioMsg.textContent).toBe(
       "Import failed: Invalid code (missing WS1: prefix).",
     );
-    assert.deepEqual(state.bottleLayers, originalLayers);
+    expect(state.bottleLayers).toEqual(originalLayers);
   });
 
-  await t.test("rejects malformed base64 JSON", () => {
+  test("rejects malformed base64 JSON", () => {
     const { elements, io } = createFixture();
     elements.ioApplyBtn.dataset.mode = "import";
     elements.ioText.value = "WS1:not-json";
 
     io.onIOApply();
 
-    assert.equal(
-      elements.ioMsg.textContent,
+    expect(elements.ioMsg.textContent).toBe(
       "Import failed: Invalid code payload.",
     );
   });
 
-  await t.test("rejects unsupported payload versions", () => {
+  test("rejects unsupported payload versions", () => {
     const { elements, io } = createFixture();
     elements.ioApplyBtn.dataset.mode = "import";
     elements.ioText.value = encodePayload({ v: 2 });
 
     io.onIOApply();
 
-    assert.equal(
-      elements.ioMsg.textContent,
+    expect(elements.ioMsg.textContent).toBe(
       "Import failed: Unsupported version.",
     );
   });
 
-  await t.test("rejects colors that exceed bottle capacity", () => {
+  test("rejects colors that exceed bottle capacity", () => {
     const { elements, io } = createFixture();
     elements.ioApplyBtn.dataset.mode = "import";
     elements.ioText.value = encodePayload({
@@ -213,8 +216,7 @@ test("import reports invalid codes without changing the puzzle", async (t) => {
 
     io.onIOApply();
 
-    assert.equal(
-      elements.ioMsg.textContent,
+    expect(elements.ioMsg.textContent).toBe(
       "Import failed: Too many colors in import for 4 bottles (max 2).",
     );
   });

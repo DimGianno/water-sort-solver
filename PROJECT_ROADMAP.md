@@ -78,7 +78,7 @@
 - **Reason:** Shared puzzle structures and asynchronous worker messages benefit from compile-time contracts without requiring a framework rewrite.
 - **Expected outcome:** Complete the migration module by module while preserving browser behavior and keeping each review focused.
 - **Affected area:** Build tooling, constants, validation, solver modules, worker messaging, and tests
-- **Status:** Completed - Vite now bundles a fully TypeScript application, with shared contracts covering state, validation, builder, import/export, replay, solver logic, and worker messaging.
+- **Status:** Completed - Vite now bundles a fully TypeScript application, with shared contracts covering state, validation, builder, import/export, replay, solver logic, and worker messaging; all core tests are also TypeScript and run through Vitest.
 
 ### Move A* search into a Web Worker
 

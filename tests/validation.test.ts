@@ -1,40 +1,49 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, expect, test } from "vitest";
 
 import { CAP, DEFAULT_COLORS } from "../assets/js/constants.ts";
 import { createValidation } from "../assets/js/validation.ts";
+
+interface FixtureOptions {
+  checkedColors?: string[];
+  layers?: string[][];
+  isSolving?: boolean;
+}
+
+interface CancellationOptions {
+  reason?: string;
+}
 
 function createFixture({
   checkedColors = ["Red", "Blue"],
   layers = [],
   isSolving = false,
-} = {}) {
+}: FixtureOptions = {}) {
   const checkboxes = DEFAULT_COLORS.map((value) => ({
     value,
     checked: checkedColors.includes(value),
   }));
   const elements = {
     colorChecklist: {
-      querySelectorAll(selector) {
-        assert.equal(selector, 'input[type="checkbox"]:checked');
+      querySelectorAll(selector: string) {
+        expect(selector).toBe('input[type="checkbox"]:checked');
         return checkboxes.filter((checkbox) => checkbox.checked);
       },
     },
     numBottles: { value: String(layers.length || 4) },
     solveBtn: { disabled: false },
-    validationMsg: { textContent: "", style: {} },
+    validationMsg: { textContent: "", style: { color: "" } },
   };
   const state = {
     bottleLayers: layers.map((bottle) => bottle.slice()),
     isSolving,
   };
-  const cancellations = [];
+  const cancellations: CancellationOptions[] = [];
   const context = {
     CAP,
     DEFAULT_COLORS,
     state,
-    el: (id) => elements[id],
-    cancelSolve: (options) => {
+    el: (id: string) => elements[id as keyof typeof elements],
+    cancelSolve: (options: CancellationOptions) => {
       cancellations.push(options);
       state.isSolving = false;
     },
@@ -44,7 +53,9 @@ function createFixture({
     state,
     elements,
     cancellations,
-    validation: createValidation(context),
+    validation: createValidation(
+      context as unknown as Parameters<typeof createValidation>[0],
+    ),
   };
 }
 
@@ -58,7 +69,7 @@ test("readStateFromInput removes blanks and converts top-first layers to bottom-
     ],
   });
 
-  assert.deepEqual(validation.readStateFromInput(), [
+  expect(validation.readStateFromInput()).toEqual([
     ["Red", "Red", "Blue"],
     ["Red", "Blue", "Blue", "Red"],
     [],
@@ -80,10 +91,10 @@ test("changing puzzle validity cancels an active search before updating the solv
 
   validation.updateSolveEnabled();
 
-  assert.deepEqual(cancellations, [
+  expect(cancellations).toEqual([
     { reason: "Puzzle changed. Search cancelled." },
   ]);
-  assert.equal(elements.solveBtn.disabled, false);
+  expect(elements.solveBtn.disabled).toBe(false);
 });
 
 test("validateInput accepts a complete puzzle with two empty helper bottles", () => {
@@ -95,74 +106,68 @@ test("validateInput accepts a complete puzzle with two empty helper bottles", ()
     [],
   ];
 
-  assert.equal(validation.validateInput(bottles), null);
+  expect(validation.validateInput(bottles)).toBeNull();
 });
 
-test("validateInput reports structural and color-count errors", async (t) => {
+describe("validateInput reports structural and color-count errors", () => {
   const { validation } = createFixture();
 
-  await t.test("requires selected colors", () => {
-    assert.equal(
-      validation.validateInput([[], [], [], []], []),
+  test("requires selected colors", () => {
+    expect(validation.validateInput([[], [], [], []], [])).toBe(
       "Select colors first.",
     );
   });
 
-  await t.test("requires at least four bottles", () => {
-    assert.equal(
-      validation.validateInput([[], [], []], ["Red"]),
+  test("requires at least four bottles", () => {
+    expect(validation.validateInput([[], [], []], ["Red"])).toBe(
       "Invalid bottle count (min 4).",
     );
   });
 
-  await t.test("requires both helper bottles to be empty", () => {
+  test("requires both helper bottles to be empty", () => {
     const bottles = [
       ["Red", "Red", "Red", "Red"],
       ["Blue", "Blue", "Blue", "Blue"],
       ["Red"],
       [],
     ];
-    assert.equal(
-      validation.validateInput(bottles),
+    expect(validation.validateInput(bottles)).toBe(
       "Last 2 bottles must be empty (helpers).",
     );
   });
 
-  await t.test("requires every playable bottle to be full", () => {
+  test("requires every playable bottle to be full", () => {
     const bottles = [
       ["Red", "Red", "Red"],
       ["Blue", "Blue", "Blue", "Blue"],
       [],
       [],
     ];
-    assert.equal(
-      validation.validateInput(bottles),
+    expect(validation.validateInput(bottles)).toBe(
       `Bottle 1 must have exactly ${CAP} layers (fill all).`,
     );
   });
 
-  await t.test("rejects colors that were not selected", () => {
+  test("rejects colors that were not selected", () => {
     const bottles = [
       ["Red", "Red", "Red", "Green"],
       ["Blue", "Blue", "Blue", "Blue"],
       [],
       [],
     ];
-    assert.equal(
-      validation.validateInput(bottles),
+    expect(validation.validateInput(bottles)).toBe(
       'Color "Green" is used but not selected in the checklist.',
     );
   });
 
-  await t.test("requires exactly four pieces of each selected color", () => {
+  test("requires exactly four pieces of each selected color", () => {
     const bottles = [
       ["Red", "Red", "Red", "Red"],
       ["Blue", "Blue", "Blue", "Red"],
       [],
       [],
     ];
-    assert.equal(
-      validation.validateInput(bottles),
+    expect(validation.validateInput(bottles)).toBe(
       'Color "Red" appears 5 times, but must appear exactly 4 times.',
     );
   });
@@ -179,17 +184,16 @@ test("continuous validation keeps the message and solve button in sync", () => {
 
   validation.runContinuousValidation();
   validation.updateSolveEnabled();
-  assert.equal(
-    elements.validationMsg.textContent,
+  expect(elements.validationMsg.textContent).toBe(
     "Input looks valid. You can solve.",
   );
-  assert.equal(elements.validationMsg.style.color, "#0a7a22");
-  assert.equal(elements.solveBtn.disabled, false);
+  expect(elements.validationMsg.style.color).toBe("#0a7a22");
+  expect(elements.solveBtn.disabled).toBe(false);
 
   state.bottleLayers[0][0] = "";
   validation.runContinuousValidation();
   validation.updateSolveEnabled();
-  assert.match(elements.validationMsg.textContent, /^Invalid: Bottle 1/);
-  assert.equal(elements.validationMsg.style.color, "#b00020");
-  assert.equal(elements.solveBtn.disabled, true);
+  expect(elements.validationMsg.textContent).toMatch(/^Invalid: Bottle 1/);
+  expect(elements.validationMsg.style.color).toBe("#b00020");
+  expect(elements.solveBtn.disabled).toBe(true);
 });
