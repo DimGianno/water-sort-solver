@@ -466,6 +466,10 @@ textarea {
   grid-template-columns: auto 1fr;
   gap: 9px;
 }
+.sample-btn {
+  width: 100%;
+  margin-top: 9px;
+}
 .warn,
 .ok {
   min-height: 0;
@@ -577,13 +581,19 @@ textarea {
 .solve-copy {
   min-width: 250px;
 }
-.solve-controls {
+.solve-actions {
+  min-width: 0;
   flex: 1;
+}
+.solve-controls {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+.solve-actions .ok {
+  text-align: right;
 }
 .mode-field label {
   display: block;
@@ -757,6 +767,11 @@ textarea {
   color: var(--label);
   font-size: 11px;
   font-weight: 700;
+}
+.palette-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .fill-palette {
   display: grid;
@@ -961,6 +976,12 @@ footer p {
   }
   .solve-controls {
     justify-content: flex-start;
+  }
+  .solve-actions {
+    width: 100%;
+  }
+  .solve-actions .ok {
+    text-align: left;
   }
   .results-grid {
     grid-template-columns: 1fr;

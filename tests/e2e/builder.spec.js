@@ -38,6 +38,26 @@ test("layer-first entry reaches a valid, solvable puzzle", async ({ page }) => {
   await expect(page.locator(".layer[aria-label$=', Blue']")).toHaveCount(4);
 });
 
+test("clear all bottles restores the full color inventory", async ({
+  page,
+}) => {
+  await openFourBottleBuilder(page);
+  await fillSolvablePuzzle(page);
+
+  await page.getByRole("button", { name: "Clear all bottles" }).click();
+
+  await expect(page.locator(".layer[aria-label$=', empty']")).toHaveCount(8);
+  await expect(paletteColor(page, "Red")).toHaveAccessibleName(
+    "Red, 4 remaining",
+  );
+  await expect(paletteColor(page, "Blue")).toHaveAccessibleName(
+    "Blue, 4 remaining",
+  );
+  await expect(
+    page.getByRole("button", { name: /Solve puzzle/ }),
+  ).toBeDisabled();
+});
+
 test("color-first entry paints selected layers and enforces inventory", async ({
   page,
 }) => {

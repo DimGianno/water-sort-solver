@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CAP } from "../assets/js/constants.js";
+import { CAP, SAMPLE_PUZZLE } from "../assets/js/constants.js";
 import { aStarSolve } from "../assets/js/solver-core.js";
 import { createSolver } from "../assets/js/solver.js";
 
@@ -117,6 +117,19 @@ test("the solver core preserves valid results in both search modes", () => {
     }
     assert.equal(isSolved(current), true);
   }
+});
+
+test("the curated sample demonstrates the fast versus optimal-ish tradeoff", () => {
+  const bottles = SAMPLE_PUZZLE.layers.map((layers) =>
+    layers.filter(Boolean).reverse(),
+  );
+  const fast = aStarSolve(bottles, "fast", { cap: CAP });
+  const optimal = aStarSolve(bottles, "optimal", { cap: CAP });
+
+  assert.equal(fast.ok, true);
+  assert.equal(optimal.ok, true);
+  assert.ok(fast.moves.length > optimal.moves.length);
+  assert.ok(optimal.explored > fast.explored * 5);
 });
 
 test("solve recognizes an already solved puzzle through the worker", async () => {

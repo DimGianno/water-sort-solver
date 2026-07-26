@@ -2,6 +2,50 @@ import { expect, test } from "@playwright/test";
 
 import { fillSolvablePuzzle, openFourBottleBuilder } from "./helpers.js";
 
+test("a sample puzzle solves and reveals replay with one click", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+
+  await expect(page.getByLabel("Show states")).not.toBeChecked();
+  await expect(page.getByLabel("Concise moves")).not.toBeChecked();
+  await page.getByRole("button", { name: "Try a sample" }).click();
+
+  await expect(page.locator("#success")).toContainText("Solved!");
+  await expect(page.locator("#replay")).toBeVisible();
+  await expect(page.locator("#replayCard")).toBeInViewport();
+  await expect(page.locator("#stepLabel")).toHaveText(/Step 0\/\d+/i);
+
+  if (testInfo.project.name === "desktop-chromium") {
+    const layout = await page.evaluate(() => {
+      const controls = document.querySelector(".solve-controls");
+      const success = document.querySelector("#success");
+      const controlItems = [
+        document.querySelector("#modeSel"),
+        document.querySelector("#showStates")?.closest("label"),
+        document.querySelector("#shortMoves")?.closest("label"),
+        document.querySelector("#solveBtn"),
+      ];
+      const controlBottoms = controlItems.map((item) => {
+        const box = item.getBoundingClientRect();
+        return box.bottom;
+      });
+      const controlsBox = controls.getBoundingClientRect();
+      const successBox = success.getBoundingClientRect();
+      return {
+        controlBottoms,
+        controlsBottom: controlsBox.bottom,
+        successTop: successBox.top,
+      };
+    });
+
+    expect(
+      Math.max(...layout.controlBottoms) - Math.min(...layout.controlBottoms),
+    ).toBeLessThanOrEqual(1);
+    expect(layout.successTop).toBeGreaterThanOrEqual(layout.controlsBottom);
+  }
+});
+
 test("the complete solve and replay flow works through visible controls", async ({
   page,
 }) => {

@@ -243,6 +243,31 @@ export function createBuilder(ctx) {
     updateSolveEnabled();
   }
 
+  function clearAllBottles() {
+    if (!state.bottleLayers.length) return;
+
+    const editableBottles = state.bottleLayers.length - 2;
+    for (let b = 0; b < editableBottles; b++) {
+      state.bottleLayers[b].fill("");
+    }
+
+    state.selectedLayer = { b: 0, l: 0 };
+    state.activeColor = null;
+    state.lastSolution = null;
+    state.revealReplayOnSolve = false;
+    hideReplay();
+    showError("");
+    showSuccess("");
+
+    renderAllLayers();
+    renderPalette();
+    runContinuousValidation();
+    updateSolveEnabled();
+    el("status").textContent =
+      "Fill every non-helper bottle to unlock the solver.";
+    el("output").textContent = "Ready.";
+  }
+
   function remainingFor(color) {
     const counts = computeUsedCounts();
     return CAP - (counts[color] || 0);
@@ -319,6 +344,9 @@ export function createBuilder(ctx) {
       ? state.bottleLayers[selected.b][selected.l]
       : "";
     el("clearLayerBtn").disabled = !selectedValue;
+    el("clearAllBtn").disabled = !state.bottleLayers
+      .slice(0, -2)
+      .some((bottle) => bottle.some(Boolean));
 
     if (state.fillMode === "color") {
       el("paletteTitle").textContent = state.activeColor
@@ -384,6 +412,7 @@ export function createBuilder(ctx) {
     if (el("fillModeColor").checked) setFillMode("color");
   });
   el("clearLayerBtn").addEventListener("click", clearSelectedLayer);
+  el("clearAllBtn").addEventListener("click", clearAllBottles);
 
   return {
     updateSelectAllVisibility,
@@ -396,6 +425,7 @@ export function createBuilder(ctx) {
     closeAllPopovers,
     renderPopover,
     setLayerColor,
+    clearAllBottles,
     renderAllLayers,
     renderPalette,
   };
