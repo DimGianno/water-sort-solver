@@ -1,4 +1,27 @@
-export function createBuilder(ctx) {
+import type {
+  AppState,
+  ElementLookup,
+  FillMode,
+  SelectedLayer,
+} from "./app-types.ts";
+
+interface BuilderContext {
+  CAP: number;
+  COLOR_PALETTE: Readonly<Record<string, string>>;
+  DEFAULT_COLORS: readonly string[];
+  state: AppState;
+  el: ElementLookup;
+  showError: (message: string) => void;
+  showSuccess: (message: string) => void;
+  selectedColors: () => string[];
+  colorMaxAllowed: () => number;
+  computeUsedCounts: () => Record<string, number>;
+  runContinuousValidation: () => void;
+  updateSolveEnabled: () => void;
+  hideReplay: () => void;
+}
+
+export function createBuilder(ctx: BuilderContext) {
   const { CAP, COLOR_PALETTE, DEFAULT_COLORS, state, el } = ctx;
   const {
     showError,
@@ -11,25 +34,27 @@ export function createBuilder(ctx) {
     hideReplay,
   } = ctx;
 
-  function updateSelectAllVisibility() {
-    const n = parseInt(el("numBottles").value, 10);
+  function updateSelectAllVisibility(): void {
+    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
     el("selectAllBtn").style.display = n === 14 ? "inline-block" : "none";
   }
 
-  function updateColorLimitUI() {
+  function updateColorLimitUI(): void {
     const max = colorMaxAllowed();
     const chosen = selectedColors().length;
     el("colorLimitHint").textContent = `${chosen}/${max} selected`;
 
     const checkboxes = Array.from(
-      el("colorChecklist").querySelectorAll('input[type="checkbox"]'),
+      el("colorChecklist").querySelectorAll<HTMLInputElement>(
+        'input[type="checkbox"]',
+      ),
     );
     const lock = chosen >= max;
     for (const checkbox of checkboxes)
       checkbox.disabled = !checkbox.checked && lock;
   }
 
-  function buildChecklist() {
+  function buildChecklist(): void {
     const box = el("colorChecklist");
     box.innerHTML = "";
 
@@ -71,11 +96,11 @@ export function createBuilder(ctx) {
     updateColorLimitUI();
   }
 
-  function selectAllColors() {
-    if (parseInt(el("numBottles").value, 10) !== 14) return;
+  function selectAllColors(): void {
+    if (parseInt(el<HTMLInputElement>("numBottles").value, 10) !== 14) return;
 
     el("colorChecklist")
-      .querySelectorAll('input[type="checkbox"]')
+      .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
       .forEach((checkbox) => {
         checkbox.checked = true;
       });
@@ -89,8 +114,8 @@ export function createBuilder(ctx) {
     }
   }
 
-  function buildBottlesUI() {
-    const n = parseInt(el("numBottles").value, 10);
+  function buildBottlesUI(): void {
+    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
     const colors = selectedColors();
 
     showError("");
@@ -109,7 +134,9 @@ export function createBuilder(ctx) {
     state.selectedLayer = { b: 0, l: 0 };
     state.openPopoverBottle = null;
     state.activeColor = null;
-    state.fillMode = el("fillModeColor").checked ? "color" : "layer";
+    state.fillMode = el<HTMLInputElement>("fillModeColor").checked
+      ? "color"
+      : "layer";
     state.lastSolution = null;
     hideReplay();
 
@@ -174,7 +201,7 @@ export function createBuilder(ctx) {
     updateSolveEnabled();
   }
 
-  function onLayerClick(bottleIndex, layerIndex) {
+  function onLayerClick(bottleIndex: number, layerIndex: number): void {
     const editableBottles = state.bottleLayers.length - 2;
     if (!state.bottleLayers.length || bottleIndex >= editableBottles) return;
 
@@ -192,7 +219,7 @@ export function createBuilder(ctx) {
     updateSolveEnabled();
   }
 
-  function setFillMode(mode) {
+  function setFillMode(mode: FillMode): void {
     state.fillMode = mode === "color" ? "color" : "layer";
     state.activeColor = null;
 
@@ -208,7 +235,7 @@ export function createBuilder(ctx) {
     renderPalette();
   }
 
-  function onPaletteColor(color) {
+  function onPaletteColor(color: string): void {
     if (remainingFor(color) <= 0) return;
 
     if (state.fillMode === "color") {
@@ -231,7 +258,7 @@ export function createBuilder(ctx) {
     updateSolveEnabled();
   }
 
-  function clearSelectedLayer() {
+  function clearSelectedLayer(): void {
     if (!state.selectedLayer) return;
     const { b, l } = state.selectedLayer;
     if (!state.bottleLayers[b][l]) return;
@@ -243,7 +270,7 @@ export function createBuilder(ctx) {
     updateSolveEnabled();
   }
 
-  function clearAllBottles() {
+  function clearAllBottles(): void {
     if (!state.bottleLayers.length) return;
 
     const editableBottles = state.bottleLayers.length - 2;
@@ -268,12 +295,15 @@ export function createBuilder(ctx) {
     el("output").textContent = "Ready.";
   }
 
-  function remainingFor(color) {
+  function remainingFor(color: string): number {
     const counts = computeUsedCounts();
     return CAP - (counts[color] || 0);
   }
 
-  function findNextEmptyLayer(bottleIndex, layerIndex) {
+  function findNextEmptyLayer(
+    bottleIndex: number,
+    layerIndex: number,
+  ): SelectedLayer | null {
     const editableBottles = Math.max(0, state.bottleLayers.length - 2);
     const totalLayers = editableBottles * CAP;
     if (!totalLayers) return null;
@@ -288,7 +318,11 @@ export function createBuilder(ctx) {
     return null;
   }
 
-  function setLayerColor(bottleIndex, layerIndex, color) {
+  function setLayerColor(
+    bottleIndex: number,
+    layerIndex: number,
+    color: string,
+  ): boolean {
     const previous = state.bottleLayers[bottleIndex][layerIndex];
     if (previous === color) return false;
 
@@ -301,13 +335,13 @@ export function createBuilder(ctx) {
     return true;
   }
 
-  function renderAllLayers() {
+  function renderAllLayers(): void {
     const area = el("bottleArea");
     if (!area || !state.bottleLayers.length) return;
 
-    area.querySelectorAll(".layer").forEach((layer) => {
-      const b = parseInt(layer.dataset.bottle, 10);
-      const l = parseInt(layer.dataset.layer, 10);
+    area.querySelectorAll<HTMLButtonElement>(".layer").forEach((layer) => {
+      const b = parseInt(layer.dataset.bottle ?? "", 10);
+      const l = parseInt(layer.dataset.layer ?? "", 10);
       const color = state.bottleLayers[b][l] || "";
       const isHelper = b >= state.bottleLayers.length - 2;
 
@@ -327,7 +361,7 @@ export function createBuilder(ctx) {
     });
   }
 
-  function renderPalette() {
+  function renderPalette(): void {
     const palette = el("fillPalette");
     if (!palette) return;
     palette.innerHTML = "";
@@ -343,8 +377,8 @@ export function createBuilder(ctx) {
     const selectedValue = selected
       ? state.bottleLayers[selected.b][selected.l]
       : "";
-    el("clearLayerBtn").disabled = !selectedValue;
-    el("clearAllBtn").disabled = !state.bottleLayers
+    el<HTMLButtonElement>("clearLayerBtn").disabled = !selectedValue;
+    el<HTMLButtonElement>("clearAllBtn").disabled = !state.bottleLayers
       .slice(0, -2)
       .some((bottle) => bottle.some(Boolean));
 
@@ -393,23 +427,23 @@ export function createBuilder(ctx) {
     }
   }
 
-  function closeAllPopovers() {
+  function closeAllPopovers(): void {
     state.openPopoverBottle = null;
   }
 
-  function openPopover() {
+  function openPopover(): void {
     renderPalette();
   }
 
-  function renderPopover() {
+  function renderPopover(_bottleIndex?: number | null): void {
     renderPalette();
   }
 
   el("fillModeLayer").addEventListener("change", () => {
-    if (el("fillModeLayer").checked) setFillMode("layer");
+    if (el<HTMLInputElement>("fillModeLayer").checked) setFillMode("layer");
   });
   el("fillModeColor").addEventListener("change", () => {
-    if (el("fillModeColor").checked) setFillMode("color");
+    if (el<HTMLInputElement>("fillModeColor").checked) setFillMode("color");
   });
   el("clearLayerBtn").addEventListener("click", clearSelectedLayer);
   el("clearAllBtn").addEventListener("click", clearAllBottles);

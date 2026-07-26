@@ -4,15 +4,36 @@ import {
   DEFAULT_COLORS,
   SAMPLE_PUZZLE,
 } from "./constants.ts";
+import type { AppState, ElementLookup } from "./app-types.ts";
 import { createValidation } from "./validation.ts";
-import { createReplay } from "./replay.js";
-import { createBuilder } from "./builder.js";
-import { createImportExport } from "./io.js";
+import { createReplay } from "./replay.ts";
+import { createBuilder } from "./builder.ts";
+import { createImportExport } from "./io.ts";
 import { createSolver } from "./solver.ts";
 
-const el = (id) => document.getElementById(id);
+type Theme = "dark" | "light";
 
-function applyTheme(theme) {
+interface BaseContext {
+  CAP: number;
+  COLOR_PALETTE: Readonly<Record<string, string>>;
+  DEFAULT_COLORS: readonly string[];
+  state: AppState;
+  el: ElementLookup;
+  showError: (message: string) => void;
+  showSuccess: (message: string) => void;
+}
+
+type AppContext = BaseContext &
+  ReturnType<typeof createValidation> &
+  ReturnType<typeof createReplay> &
+  ReturnType<typeof createBuilder> &
+  ReturnType<typeof createImportExport> &
+  ReturnType<typeof createSolver>;
+
+const el: ElementLookup = <T extends HTMLElement = HTMLElement>(id: string) =>
+  document.getElementById(id) as T;
+
+function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
 
   const btn = el("themeBtn");
@@ -24,21 +45,21 @@ function applyTheme(theme) {
   btn.setAttribute("aria-label", btn.title);
 }
 
-function initTheme() {
+function initTheme(): void {
   const btn = el("themeBtn");
   if (!btn) return;
 
   // 1) try saved theme
   const saved = localStorage.getItem("wss_theme");
-  let theme = saved;
+  let theme: Theme;
 
   // 2) otherwise follow system preference
-  if (theme !== "dark" && theme !== "light") {
+  if (saved !== "dark" && saved !== "light") {
     const prefersDark =
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches;
     theme = prefersDark ? "dark" : "light";
-  }
+  } else theme = saved;
 
   applyTheme(theme);
 
@@ -51,7 +72,7 @@ function initTheme() {
   });
 }
 
-const state = {
+const state: AppState = {
   bottleLayers: [],
   selectedLayer: null,
   openPopoverBottle: null,
@@ -64,12 +85,12 @@ const state = {
   revealReplayOnSolve: false,
 };
 
-function showError(msg) {
+function showError(msg: string): void {
   el("error").textContent = msg || "";
   el("success").textContent = "";
 }
 
-function showSuccess(msg) {
+function showSuccess(msg: string): void {
   el("success").textContent = msg || "";
   el("error").textContent = "";
 }
@@ -82,7 +103,7 @@ const ctx = {
   el,
   showError,
   showSuccess,
-};
+} as unknown as AppContext;
 
 Object.assign(ctx, createValidation(ctx));
 Object.assign(ctx, createReplay(ctx));
@@ -90,15 +111,15 @@ Object.assign(ctx, createBuilder(ctx));
 Object.assign(ctx, createImportExport(ctx));
 Object.assign(ctx, createSolver(ctx));
 
-function resetAll() {
+function resetAll(): void {
   ctx.cancelSolve?.({ silent: true });
-  el("numBottles").value = 11;
-  el("showStates").checked = false;
-  el("shortMoves").checked = false;
-  el("modeSel").value = "fast";
+  el<HTMLInputElement>("numBottles").value = "11";
+  el<HTMLInputElement>("showStates").checked = false;
+  el<HTMLInputElement>("shortMoves").checked = false;
+  el<HTMLSelectElement>("modeSel").value = "fast";
 
   el("colorChecklist")
-    .querySelectorAll('input[type="checkbox"]')
+    .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
     .forEach((cb) => {
       cb.checked = false;
       cb.disabled = false;
@@ -125,9 +146,9 @@ function resetAll() {
   el("error").textContent = "";
   el("success").textContent = "";
   el("output").textContent = "Your step-by-step solution will appear here.";
-  el("solveBtn").disabled = true;
+  el<HTMLButtonElement>("solveBtn").disabled = true;
   el("fillToolbar").hidden = true;
-  el("fillModeLayer").checked = true;
+  el<HTMLInputElement>("fillModeLayer").checked = true;
 
   ctx.hideIO();
   ctx.hideReplay();
@@ -143,14 +164,16 @@ ctx.updateSelectAllVisibility();
 el("resetBtn").addEventListener("click", resetAll);
 
 el("numBottles").addEventListener("change", () => {
-  let v = parseInt(el("numBottles").value, 10);
+  let v = parseInt(el<HTMLInputElement>("numBottles").value, 10);
   if (v > 14) v = 14;
   if (v < 4) v = 4;
-  el("numBottles").value = v;
+  el<HTMLInputElement>("numBottles").value = String(v);
 
   const max = ctx.colorMaxAllowed();
   const checked = Array.from(
-    el("colorChecklist").querySelectorAll('input[type="checkbox"]:checked'),
+    el("colorChecklist").querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]:checked',
+    ),
   );
   if (checked.length > max)
     for (let k = max; k < checked.length; k++) checked[k].checked = false;

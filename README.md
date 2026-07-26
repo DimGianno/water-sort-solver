@@ -79,14 +79,15 @@ Puzzle states are encoded as ordered bottle contents. A module Web Worker runs t
 ```text
 index.html              Interface and page structure
 assets/css/styles.css   Responsive visual system and themes
-assets/js/app.js          Application state and event wiring
-assets/js/builder.js      Puzzle builder interactions
+assets/js/app.ts          Typed application state and event wiring
+assets/js/app-types.ts    Shared application state and UI contracts
+assets/js/builder.ts      Typed puzzle builder interactions
 assets/js/solver.ts       Typed worker lifecycle and solution UI controller
 assets/js/solver-core.ts  Typed A* search implementation
 assets/js/solver-types.ts Shared puzzle, result, and worker message types
 assets/js/solver-worker.ts Background search worker and typed message boundary
-assets/js/replay.js       Step-by-step solution replay
-assets/js/io.js           Puzzle import and export
+assets/js/replay.ts       Typed step-by-step solution replay
+assets/js/io.ts           Typed puzzle import and export
 assets/js/validation.ts   Typed input validation
 assets/js/constants.ts    Typed capacity and color definitions
 playwright.config.js      Browser projects and Vite test-server configuration
@@ -97,4 +98,4 @@ tsconfig.json             Incremental TypeScript checking configuration
 
 ## Built with
 
-Semantic HTML, modern CSS, and framework-free JavaScript and TypeScript modules bundled with Vite. TypeScript is being adopted incrementally across constants, validation, shared solver contracts, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Playwright is used for browser testing.
+Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Playwright is used for browser testing.

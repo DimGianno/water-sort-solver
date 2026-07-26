@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CAP, DEFAULT_COLORS } from "../assets/js/constants.ts";
-import { createImportExport } from "../assets/js/io.js";
+import { createImportExport } from "../assets/js/io.ts";
 
 function encodePayload(payload) {
   return `WS1:${Buffer.from(JSON.stringify(payload), "utf8").toString("base64")}`;
