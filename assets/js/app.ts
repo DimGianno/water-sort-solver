@@ -11,6 +11,7 @@ import { createBuilder } from "./builder.ts";
 import { createImportExport } from "./io.ts";
 import { createSolver } from "./solver.ts";
 import { createOfflineSupport } from "./offline.ts";
+import { createScreenshotImport } from "./screenshot.ts";
 
 type Theme = "dark" | "light";
 
@@ -31,6 +32,7 @@ type AppContext = BaseContext &
   ReturnType<typeof createReplay> &
   ReturnType<typeof createBuilder> &
   ReturnType<typeof createImportExport> &
+  ReturnType<typeof createScreenshotImport> &
   ReturnType<typeof createSolver>;
 
 const el: ElementLookup = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -112,6 +114,7 @@ Object.assign(ctx, createValidation(ctx));
 Object.assign(ctx, createReplay(ctx));
 Object.assign(ctx, createBuilder(ctx));
 Object.assign(ctx, createImportExport(ctx));
+Object.assign(ctx, createScreenshotImport(ctx));
 Object.assign(ctx, createSolver(ctx));
 
 function resetAll(): void {
@@ -154,6 +157,7 @@ function resetAll(): void {
   el<HTMLInputElement>("fillModeLayer").checked = true;
 
   ctx.hideIO();
+  ctx.closeScreenshotImport();
   ctx.hideReplay();
   ctx.updateSelectAllVisibility();
   ctx.updateColorLimitUI();
@@ -199,6 +203,12 @@ el("numBottles").addEventListener("change", () => {
 el("importBtn").addEventListener("click", ctx.onImport);
 el("ioCloseBtn").addEventListener("click", ctx.hideIO);
 el("ioApplyBtn").addEventListener("click", ctx.onIOApply);
+el("screenshotBtn").addEventListener("click", ctx.chooseScreenshot);
+el("screenshotInput").addEventListener("change", () => {
+  void ctx.onScreenshotSelected();
+});
+el("screenshotApplyBtn").addEventListener("click", ctx.applyScreenshot);
+el("screenshotCloseBtn").addEventListener("click", ctx.closeScreenshotImport);
 
 el("selectAllBtn").addEventListener("click", ctx.selectAllColors);
 el("buildBtn").addEventListener("click", ctx.buildBottlesUI);

@@ -8,14 +8,14 @@
 
 ## Known Limitations
 
-### Personal puzzle entry is manual or code-based
+### Screenshot recognition supports a calibrated visual style
 
 - **Area:** Input
 - **Severity:** Medium
-- **User impact:** Users must recreate their own bottles or import an existing Chromaflow code instead of capturing a game screenshot; the ready-made sample only demonstrates the solve-and-replay flow.
-- **Technical impact:** The application has no image recognition, color sampling, or screenshot validation pipeline.
-- **Current workaround:** Try the curated sample for an immediate demo, or use either fill mode to enter a personal level manually and export it for later reuse.
-- **Suggested resolution:** Add an optional screenshot-import flow with editable recognition results before building the solver state.
+- **User impact:** Screenshots using the calibrated straight, light-outlined bottle artwork can be imported at varying resolutions, while games with substantially different bottle shapes or color palettes may not be recognized.
+- **Technical impact:** The local detector derives geometry from connected bottle outlines and uses calibrated color profiles rather than a general-purpose computer-vision model.
+- **Current workaround:** Review and correct every detected layer in the editable builder, or recreate unsupported screenshots manually with either fill mode.
+- **Suggested resolution:** Add opt-in crop guidance and additional tested bottle and color profiles as representative screenshots become available.
 - **Status:** Known
 
 ### Puzzle capacity remains fixed
@@ -43,11 +43,11 @@
 ### Import a puzzle from a screenshot
 
 - **Priority:** High
-- **Status:** Idea
+- **Status:** Ready for review
 - **Value:** Removes most manual setup and turns a captured game level directly into editable solver input.
-- **Scope:** Accept a screenshot, detect bottle regions and layer colors, map results to the existing palette, and require confirmation before solving.
-- **Dependencies:** A reliable client-side image-processing approach and a representative screenshot fixture set
-- **Complexity:** Large
+- **Scope:** Accept JPEG, PNG, and WebP screenshots, detect normalized bottle regions and layer colors locally, map results to the existing palette, and require editable review before solving.
+- **Dependencies:** Implemented with browser Canvas APIs, calibrated color profiles, and synthetic fixtures derived from representative screenshots
+- **Complexity:** Completed initial profile; broader game-style support remains incremental
 - **Portfolio relevance:** Demonstrates computer-vision-assisted input, confidence handling, and human-in-the-loop correction.
 
 ### Share puzzles through URLs
@@ -70,7 +70,7 @@
    - Goal: Find a solution from the exact state of a level that is already in progress.
    - Included work: Editable partial bottles, color counting across every bottle, generalized validation, imports, and focused solver-flow coverage.
    - Completion criteria: Any structurally valid reachable state with the complete color inventory can be entered, corrected, and solved.
-3. **Faster puzzle onboarding — In progress**
+3. **Faster puzzle onboarding — Ready for review**
    - Goal: Reduce the time between opening Chromaflow and seeing a solution.
-   - Included work: One-click curated sample completed; screenshot-assisted entry with editable recognition results remains planned.
+   - Included work: One-click curated sample plus offline screenshot-assisted entry with resolution-independent geometry, calibrated colors, strict validation, and editable recognition results.
    - Completion criteria: New visitors can run a sample immediately, and supported fresh or in-progress screenshots produce a reviewable puzzle state before solving.

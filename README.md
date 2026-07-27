@@ -8,6 +8,7 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 - Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
 - Recreate fresh levels or partially solved bottle states in the same editable builder
+- Import supported Water Sort screenshots with private, offline recognition and review the detected layers before solving
 - Track each color's four available pieces with live counters
 - Clear one layer or every editable bottle while rebuilding a level
 - Choose from a color palette with live input validation
@@ -38,6 +39,12 @@ Open the production application once while connected and wait for the **Ready of
 
 Offline support requires HTTPS in production (or `localhost` during development). If the optional Google fonts are unavailable, the interface uses its built-in system-font fallbacks without affecting puzzle entry or solving.
 
+## Import a screenshot
+
+Choose **Import from a screenshot**, select a JPEG, PNG, or WebP image, and wait for Chromaflow to detect the bottle rows and liquid layers. Recognition runs entirely in the browser: the image is not uploaded and no internet connection is required once the application is ready offline.
+
+The first recognition profile supports the straight, light-outlined bottle style used by the included test fixtures and calibrated iPhone screenshots. Screen resolution may vary because bottle geometry is measured proportionally after the image is normalized. After applying the result, review every editable layer before solving. Screenshots from games with substantially different bottle artwork or liquid colors may still require manual entry.
+
 ## Test
 
 Install the development dependencies and browser engines once:
@@ -67,7 +74,7 @@ Playwright starts and stops its dedicated test server automatically on `http://1
 
 GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
 
-The suites cover fresh and in-progress puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
+The suites cover fresh and in-progress puzzle validation, offline screenshot recognition at multiple resolutions, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
 
