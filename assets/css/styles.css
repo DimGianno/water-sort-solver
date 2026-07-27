@@ -943,7 +943,8 @@ textarea {
   accent-color: var(--accent);
 }
 #speedLabel {
-  flex: 0 0 5ch;
+  width: 5ch;
+  flex: none;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
