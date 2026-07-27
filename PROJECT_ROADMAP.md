@@ -40,16 +40,6 @@
 
 ## Next Features
 
-### Import a puzzle from a screenshot
-
-- **Priority:** High
-- **Status:** Ready for review
-- **Value:** Removes most manual setup and turns a captured game level directly into editable solver input.
-- **Scope:** Accept JPEG, PNG, and WebP screenshots, detect normalized bottle regions and layer colors locally, map results to the existing palette, and require editable review before solving.
-- **Dependencies:** Implemented with browser Canvas APIs, calibrated color profiles, and synthetic fixtures derived from representative screenshots
-- **Complexity:** Completed initial profile; broader game-style support remains incremental
-- **Portfolio relevance:** Demonstrates computer-vision-assisted input, confidence handling, and human-in-the-loop correction.
-
 ### Share puzzles through URLs
 
 - **Priority:** Low
@@ -60,7 +50,7 @@
 - **Complexity:** Medium
 - **Portfolio relevance:** Demonstrates addressable application state and resilient client-side parsing.
 
-## Suggested Next Milestones
+## Development Milestones
 
 1. **Reliable offline operation — Completed**
    - Goal: Keep puzzle entry and responsive solving available when connectivity disappears.
