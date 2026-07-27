@@ -71,8 +71,8 @@
             Turn tangled colors into a <span>clear solution.</span>
           </h1>
           <p class="hero-text">
-            Recreate your Water Sort level, let the search engine find a path,
-            then replay every pour at your own pace.
+            Import a screenshot or recreate your Water Sort level, let the
+            search engine find a path, then replay every pour at your own pace.
           </p>
         </div>
         <div class="hero-stats" aria-label="Solver features">
@@ -148,6 +148,53 @@
               </button>
             </div>
             <span class="small" id="ioMsg" aria-live="polite"></span>
+          </div>
+
+          <button
+            id="screenshotBtn"
+            class="text-btn screenshot-btn"
+            type="button"
+          >
+            Import from a screenshot
+          </button>
+          <input
+            id="screenshotInput"
+            class="visually-hidden"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+          />
+          <div id="screenshotArea" class="screenshot-area" hidden>
+            <img
+              id="screenshotPreview"
+              class="screenshot-preview"
+              alt="Selected Water Sort screenshot preview"
+            />
+            <p class="hint screenshot-privacy">
+              Recognition runs on this device. The image is never uploaded.
+            </p>
+            <p
+              id="screenshotMsg"
+              class="small screenshot-message"
+              role="status"
+              aria-live="polite"
+            ></p>
+            <div class="inline screenshot-actions">
+              <button
+                id="screenshotApplyBtn"
+                class="primary-btn"
+                type="button"
+                disabled
+              >
+                Use detected puzzle
+              </button>
+              <button
+                id="screenshotCloseBtn"
+                class="secondary-btn"
+                type="button"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </aside>
 

@@ -11,9 +11,18 @@
 
 ## Current Project Summary
 
-Chromaflow is a browser application for recreating and solving fresh or partially completed Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the current bottle state, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver worker and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
+Chromaflow is a browser application for importing, recreating, and solving fresh or partially completed Water Sort puzzles. Users can recognize supported screenshots locally, configure levels with up to 14 bottles, correct colors through layer-first or color-first mobile workflows, validate the current bottle state, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver, screenshot recognizer, and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-27 - Offline screenshot puzzle import
+
+- **Type:** Capability
+- **Status:** Ready for review
+- **Summary:** Added private, client-side recognition that converts supported Water Sort screenshots into editable Chromaflow puzzles.
+- **User impact:** Users can select a fresh or in-progress screenshot, apply the detected bottles and colors, correct any layer in the existing builder, and solve without uploading the image or requiring an internet connection.
+- **Technical impact:** Added resolution-independent bottle-outline detection, normalized four-layer sampling, calibrated color profiles, strict inventory and gap confidence checks, local image preview lifecycle handling, service-worker-compatible bundling, synthetic multi-resolution unit coverage, desktop/mobile browser coverage, and successful calibration against eight representative 11- and 14-bottle iPhone screenshots.
+- **Related area:** Puzzle onboarding, offline capability, and image-assisted input
 
 ### 2026-07-27 - Solve from an in-progress puzzle
 
