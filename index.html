@@ -8,6 +8,8 @@
       content="Build, solve, and replay Water Sort puzzles with a fast A* search engine."
     />
     <meta name="theme-color" content="#6754d8" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="app-icon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Chromaflow — Water Sort Solver" />
     <meta
@@ -33,6 +35,16 @@
         <span>Chromaflow</span>
       </a>
       <div class="topbar-actions">
+        <span
+          id="offlineStatus"
+          class="offline-pill"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-offline-label>Preparing offline</span>
+        </span>
         <span class="engine-pill"
           ><span class="status-dot"></span>A* search engine</span
         >

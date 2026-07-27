@@ -1,0 +1,18 @@
+{
+  "name": "Chromaflow — Water Sort Solver",
+  "short_name": "Chromaflow",
+  "description": "Build, solve, and replay Water Sort puzzles, even while offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ed",
+  "theme_color": "#6754d8",
+  "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

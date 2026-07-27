@@ -2,7 +2,7 @@
 
 ## Latest Stable State
 
-- **Last updated:** 2026-07-26
+- **Last updated:** 2026-07-27
 - **Current version:** 1.0.0
 - **Current status:** Active
 - **Primary branch:** `main`
@@ -11,9 +11,18 @@
 
 ## Current Project Summary
 
-Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
+Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver worker and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-27 - Installable offline application
+
+- **Type:** Capability
+- **Status:** Ready for review
+- **Summary:** Added versioned offline caching and an install manifest for the production application.
+- **User impact:** After one connected visit reaches the Ready offline state, users can reload Chromaflow, recreate a puzzle, and run the responsive solver without an internet connection.
+- **Technical impact:** Production builds now generate a content-versioned service worker that precaches the exact built page, styles, application entry point, solver worker, manifest, icon, and visual assets; old application caches are removed during activation, future builds fail if a required offline asset is missing, and the interface reports preparation, readiness, offline, update, unsupported, and failure states.
+- **Related area:** Offline reliability and application delivery
 
 ### 2026-07-26 - Vite-native TypeScript unit tests
 
@@ -111,6 +120,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - Display concise moves or include the complete state after every move.
 - Replay solutions step by step with adjustable playback speed.
 - Import and export puzzle configurations using compact shareable codes with automatic clipboard copying.
+- Install and reload the production application offline with the solver worker already cached.
 - Support responsive light and dark themes without runtime dependencies.
 - Verify core logic and browser workflows automatically across desktop and mobile profiles.
 
@@ -119,6 +129,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - Incrementally typed, framework-free module architecture separating builder, validation, search, replay, and import/export responsibilities.
 - Typed A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
 - Responsive Web Worker execution with progress events, cancellation, and stale-result protection.
+- Content-versioned offline delivery that keeps the application shell and solver worker on the same release.
 - Mobile-first dual-mode puzzle entry with constrained color inventory and accessible native controls.
 - Continuous validation that prevents invalid solver input and communicates completion state.
 - Layered automated coverage for validation, import/export, solver behavior, browser interactions, and responsive layouts.

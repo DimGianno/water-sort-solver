@@ -10,6 +10,7 @@ import { createReplay } from "./replay.ts";
 import { createBuilder } from "./builder.ts";
 import { createImportExport } from "./io.ts";
 import { createSolver } from "./solver.ts";
+import { createOfflineSupport } from "./offline.ts";
 
 type Theme = "dark" | "light";
 
@@ -157,6 +158,11 @@ function resetAll(): void {
 }
 
 initTheme();
+
+void createOfflineSupport({
+  statusElement: el("offlineStatus"),
+  isProductionBuild: import.meta.env.PROD,
+}).start();
 
 ctx.buildChecklist();
 ctx.updateSelectAllVisibility();

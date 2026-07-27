@@ -171,6 +171,7 @@ textarea:focus-visible {
 }
 
 .engine-pill,
+.offline-pill,
 .mono-badge {
   display: inline-flex;
   align-items: center;
@@ -181,6 +182,20 @@ textarea:focus-visible {
     monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.offline-pill[data-state="ready"] .status-dot,
+.offline-pill[data-state="offline"] .status-dot {
+  background: var(--success);
+}
+
+.offline-pill[data-state="preparing"] .status-dot {
+  background: var(--peach);
+}
+
+.offline-pill[data-state="error"] .status-dot,
+.offline-pill[data-state="unsupported"] .status-dot {
+  background: var(--warning);
 }
 
 .status-dot {

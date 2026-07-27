@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chromaflow">
+  <rect width="512" height="512" rx="112" fill="#f4f2ed"/>
+  <path d="M112 80h288v242c0 72-58 130-130 130h-28c-72 0-130-58-130-130V80Z" fill="#fff" stroke="#191821" stroke-width="24"/>
+  <rect x="154" y="260" width="56" height="116" rx="28" fill="#b8dfce"/>
+  <rect x="228" y="164" width="56" height="212" rx="28" fill="#6754d8"/>
+  <rect x="302" y="218" width="56" height="158" rx="28" fill="#efb89d"/>
+</svg>
