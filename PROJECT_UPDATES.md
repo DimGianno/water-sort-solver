@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-27 - MIT licensing
+
+- **Type:** Project governance
+- **Status:** Ready for review
+- **Summary:** Added the MIT License and documented it in the project README.
+- **User impact:** Users and contributors now have explicit permission to use, modify, and distribute Chromaflow under the license terms.
+- **Technical impact:** Added the canonical MIT license text with the project copyright notice.
+- **Related area:** Licensing and distribution
+
 ### 2026-07-27 - Offline screenshot puzzle import
 
 - **Type:** Capability

@@ -122,3 +122,7 @@ tsconfig.json             Application and core-test TypeScript checking
 ## Built with
 
 Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Vitest runs typed core tests and Playwright provides cross-browser end-to-end coverage.
+
+## License
+
+Chromaflow is available under the [MIT License](LICENSE).
