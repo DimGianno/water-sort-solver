@@ -149,18 +149,19 @@ class MinHeap<T extends { f: number }> {
   }
 }
 
-function heuristic(
-  puzzleState: PuzzleState,
-  mode: SolverMode,
-  cap: number,
-): number {
-  let score = 0;
+function colorPresenceCounts(puzzleState: PuzzleState): Map<Color, number> {
   const present = new Map<Color, number>();
   for (const bottle of puzzleState) {
     for (const color of new Set(bottle)) {
       present.set(color, (present.get(color) || 0) + 1);
     }
   }
+  return present;
+}
+
+function fastHeuristic(puzzleState: PuzzleState, cap: number): number {
+  let score = 0;
+  const present = colorPresenceCounts(puzzleState);
 
   for (const bottle of puzzleState) {
     if (bottle.length === 0 || (bottle.length === cap && isUniform(bottle))) {
@@ -182,8 +183,36 @@ function heuristic(
   for (const count of present.values()) {
     if (count > 1) score += count - 1;
   }
-  const weight = mode === "fast" ? 1.35 : 1;
-  return Math.max(0, Math.floor(score * weight));
+  return Math.max(0, Math.floor(score * 1.35));
+}
+
+function optimalHeuristic(puzzleState: PuzzleState): number {
+  let boundaries = 0;
+  for (const bottle of puzzleState) {
+    for (let i = 1; i < bottle.length; i++) {
+      if (bottle[i] !== bottle[i - 1]) boundaries++;
+    }
+  }
+
+  let spread = 0;
+  for (const count of colorPresenceCounts(puzzleState).values()) {
+    spread += count - 1;
+  }
+
+  // One pour can remove at most one internal boundary and reduce the number of
+  // bottles containing its color by at most one. Their maximum is therefore a
+  // lower bound on the number of remaining pours without double-counting one.
+  return Math.max(boundaries, spread);
+}
+
+function heuristic(
+  puzzleState: PuzzleState,
+  mode: SolverMode,
+  cap: number,
+): number {
+  return mode === "fast"
+    ? fastHeuristic(puzzleState, cap)
+    : optimalHeuristic(puzzleState);
 }
 
 function scoreMove(
@@ -221,7 +250,7 @@ function generateMoves(
 ): SolverMove[] {
   const moves: SolverMove[] = [];
   const emptyIndex = puzzleState.findIndex((bottle) => bottle.length === 0);
-  const destinationSignatures = new Set<string>();
+  const moveSignatures = new Set<string>();
 
   for (let from = 0; from < puzzleState.length; from++) {
     const source = puzzleState[from];
@@ -230,7 +259,10 @@ function generateMoves(
     for (let to = 0; to < puzzleState.length; to++) {
       if (
         from === to ||
-        (lastMove && lastMove.from === to && lastMove.to === from)
+        (mode === "fast" &&
+          lastMove &&
+          lastMove.from === to &&
+          lastMove.to === from)
       ) {
         continue;
       }
@@ -247,10 +279,9 @@ function generateMoves(
         continue;
       }
 
-      const signature =
-        bottleKey(destination) + "|" + source[source.length - 1];
-      if (destinationSignatures.has(signature)) continue;
-      destinationSignatures.add(signature);
+      const signature = `${bottleKey(source)}>${bottleKey(destination)}`;
+      if (moveSignatures.has(signature)) continue;
+      moveSignatures.add(signature);
 
       const pour = doPour(source, destination, cap);
       moves.push({ from, to, amt: pour.amount, color: pour.color });
