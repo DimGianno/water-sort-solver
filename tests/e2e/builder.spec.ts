@@ -46,7 +46,7 @@ test("clear all bottles restores the full color inventory", async ({
 
   await page.getByRole("button", { name: "Clear all bottles" }).click();
 
-  await expect(page.locator(".layer[aria-label$=', empty']")).toHaveCount(8);
+  await expect(page.locator(".layer[aria-label$=', empty']")).toHaveCount(16);
   await expect(paletteColor(page, "Red")).toHaveAccessibleName(
     "Red, 4 remaining",
   );
@@ -95,4 +95,39 @@ test("color-first entry paints selected layers and enforces inventory", async ({
   await expect(
     page.getByRole("button", { name: /Solve puzzle/ }),
   ).toBeEnabled();
+});
+
+test("an in-progress puzzle can use partial and formerly helper bottles", async ({
+  page,
+}) => {
+  await openFourBottleBuilder(page);
+  await page.locator("label", { hasText: "Color first" }).click();
+
+  await paletteColor(page, "Red").click();
+  for (const layer of [
+    "Bottle 1, layer 3, empty",
+    "Bottle 1, layer 4, empty",
+    "Bottle 2, layer 1, empty",
+    "Bottle 2, layer 2, empty",
+  ]) {
+    await page.getByRole("button", { name: layer }).click();
+  }
+
+  await paletteColor(page, "Blue").click();
+  for (const layer of [
+    "Bottle 2, layer 3, empty",
+    "Bottle 2, layer 4, empty",
+    "Bottle 3, layer 3, empty",
+    "Bottle 3, layer 4, empty",
+  ]) {
+    await page.getByRole("button", { name: layer }).click();
+  }
+
+  await expect(page.locator("#validationMsg")).toHaveText(
+    "Input looks valid. You can solve.",
+  );
+  await page.getByRole("button", { name: /Solve puzzle/ }).click();
+  await expect(page.locator("#success")).toContainText("Solved!", {
+    timeout: 15_000,
+  });
 });

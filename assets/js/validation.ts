@@ -36,10 +36,9 @@ export function createValidation(ctx: ValidationContext) {
   function computeUsedCounts(): Record<string, number> {
     const counts: Record<string, number> = {};
     for (const color of DEFAULT_COLORS) counts[color] = 0;
-    for (let bottle = 0; bottle < state.bottleLayers.length; bottle++) {
-      if (bottle >= state.bottleLayers.length - 2) continue;
+    for (const bottle of state.bottleLayers) {
       for (let layer = 0; layer < CAP; layer++) {
-        const color = state.bottleLayers[bottle][layer];
+        const color = bottle[layer];
         if (color) counts[color] = (counts[color] || 0) + 1;
       }
     }
@@ -59,12 +58,11 @@ export function createValidation(ctx: ValidationContext) {
     const n = bottles.length;
     if (!colors.length) return "Select colors first.";
     if (n < 4) return "Invalid bottle count (min 4).";
-    if (bottles[n - 1].length !== 0 || bottles[n - 2].length !== 0)
-      return "Last 2 bottles must be empty (helpers).";
-
-    for (let i = 0; i < n - 2; i++) {
-      if (bottles[i].length !== CAP)
-        return `Bottle ${i + 1} must have exactly ${CAP} layers (fill all).`;
+    if (colors.length !== n - 2)
+      return `Select exactly ${n - 2} colors for ${n} bottles.`;
+    for (let bottle = 0; bottle < n; bottle++) {
+      if (bottles[bottle].length > CAP)
+        return `Bottle ${bottle + 1} exceeds the ${CAP}-layer capacity.`;
     }
 
     const counts = new Map<string, number>();
@@ -84,13 +82,33 @@ export function createValidation(ctx: ValidationContext) {
     return null;
   }
 
+  function validateLayerLayout(
+    layers: string[][] = state.bottleLayers,
+  ): string | null {
+    for (let bottle = 0; bottle < layers.length; bottle++) {
+      let foundColor = false;
+      for (let layer = 0; layer < CAP; layer++) {
+        if (layers[bottle][layer]) {
+          foundColor = true;
+        } else if (foundColor) {
+          return `Bottle ${bottle + 1} has an empty gap below a color. Fill partial bottles from the bottom up.`;
+        }
+      }
+    }
+    return null;
+  }
+
+  function validateCurrentInput(): string | null {
+    return validateLayerLayout() || validateInput(readStateFromInput());
+  }
+
   function runContinuousValidation(): void {
     const message = el<HTMLElement>("validationMsg");
     if (!state.bottleLayers.length) {
       message.textContent = "";
       return;
     }
-    const error = validateInput(readStateFromInput());
+    const error = validateCurrentInput();
     if (error) {
       message.textContent = "Invalid: " + error;
       message.style.color = "#b00020";
@@ -109,7 +127,7 @@ export function createValidation(ctx: ValidationContext) {
       solveButton.disabled = true;
       return;
     }
-    solveButton.disabled = Boolean(validateInput(readStateFromInput()));
+    solveButton.disabled = Boolean(validateCurrentInput());
   }
 
   return {
@@ -118,6 +136,8 @@ export function createValidation(ctx: ValidationContext) {
     computeUsedCounts,
     readStateFromInput,
     validateInput,
+    validateLayerLayout,
+    validateCurrentInput,
     runContinuousValidation,
     updateSolveEnabled,
   };

@@ -50,9 +50,9 @@ function createFixture(options: FixtureOptions = {}) {
     toast: { textContent: "", dataset: { tone: "" }, hidden: true },
   };
   const originalLayers = [
-    ["Blue", "Blue", "Red", "Red"],
+    ["", "", "Red", "Red"],
     ["Red", "Red", "Blue", "Blue"],
-    ["", "", "", ""],
+    ["", "", "Blue", "Blue"],
     ["", "", "", ""],
   ];
   const state = {
@@ -204,7 +204,7 @@ describe("import reports invalid codes without changing the puzzle", () => {
     );
   });
 
-  test("rejects colors that exceed bottle capacity", () => {
+  test("rejects color counts that do not match the bottle configuration", () => {
     const { elements, io } = createFixture();
     elements.ioApplyBtn.dataset.mode = "import";
     elements.ioText.value = encodePayload({
@@ -217,7 +217,7 @@ describe("import reports invalid codes without changing the puzzle", () => {
     io.onIOApply();
 
     expect(elements.ioMsg.textContent).toBe(
-      "Import failed: Too many colors in import for 4 bottles (max 2).",
+      "Import failed: Import must include exactly 2 colors for 4 bottles.",
     );
   });
 });

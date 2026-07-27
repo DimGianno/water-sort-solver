@@ -148,9 +148,9 @@ export function createImportExport(ctx: ImportExportContext) {
             typeof color === "string" && DEFAULT_COLORS.includes(color),
         )
       : [];
-    if (want.length > max)
+    if (want.length !== max)
       throw new Error(
-        `Too many colors in import for ${n} bottles (max ${max}).`,
+        `Import must include exactly ${max} colors for ${n} bottles.`,
       );
 
     if (!Array.isArray(obj.layers) || obj.layers.length !== n)
