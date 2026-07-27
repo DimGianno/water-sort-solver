@@ -73,11 +73,31 @@ test("the complete solve and replay flow works through visible controls", async 
   await expect(page.locator("#stepLabel")).toHaveText(/Step 1\/\d+/i);
   await expect(page.getByRole("button", { name: /Previous/ })).toBeEnabled();
 
+  const slider = page.locator("#speedRange");
+  const sliderX = await slider.evaluate(
+    (element) => element.getBoundingClientRect().x,
+  );
+  await page.getByLabel("Speed").fill("0.25");
+  await expect(page.locator("#speedLabel")).toHaveText("0.25x");
+  const sliderXWithLongLabel = await slider.evaluate(
+    (element) => element.getBoundingClientRect().x,
+  );
+  expect(sliderXWithLongLabel).toBeCloseTo(sliderX, 1);
+
   await page.getByLabel("Speed").fill("4");
   await expect(page.locator("#speedLabel")).toHaveText("4x");
   await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.getByRole("button", { name: /Next/ })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Restart" })).toBeEnabled({
+    timeout: 5_000,
+  });
   await expect(
     page.getByRole("button", { name: "Play", exact: true }),
-  ).toBeEnabled({ timeout: 5_000 });
-  await expect(page.getByRole("button", { name: /Next/ })).toBeDisabled();
+  ).toBeDisabled();
+
+  await page.getByLabel("Speed").fill("0.25");
+  await page.getByRole("button", { name: "Restart" }).click();
+  await expect(page.locator("#stepLabel")).toHaveText(/Step 0\/\d+/i);
+  await expect(page.getByRole("button", { name: "Restart" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeEnabled();
 });

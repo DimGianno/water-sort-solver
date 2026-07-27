@@ -101,8 +101,14 @@ export function createReplay(ctx: ReplayContext) {
     }
 
     el<HTMLButtonElement>("prevStepBtn").disabled = state.replayIndex === 0;
-    el<HTMLButtonElement>("nextStepBtn").disabled =
-      state.replayIndex === stepMax;
+    const isFinished = state.replayIndex === stepMax;
+    el<HTMLButtonElement>("nextStepBtn").disabled = isFinished;
+    el<HTMLButtonElement>("restartReplayBtn").disabled = !isFinished;
+
+    if (!state.replayTimer) {
+      el<HTMLButtonElement>("playBtn").disabled = isFinished;
+      el<HTMLButtonElement>("pauseBtn").disabled = true;
+    }
   }
 
   function stepPrev(): void {
@@ -138,6 +144,9 @@ export function createReplay(ctx: ReplayContext) {
       }
       state.replayIndex++;
       renderReplay();
+      if (state.replayIndex >= solution.states.length - 1) {
+        pauseReplay();
+      }
     }, interval);
   }
 
@@ -146,8 +155,20 @@ export function createReplay(ctx: ReplayContext) {
       clearInterval(state.replayTimer);
       state.replayTimer = null;
     }
-    el<HTMLButtonElement>("playBtn").disabled = false;
+    const isFinished = Boolean(
+      state.lastSolution &&
+      state.replayIndex >= state.lastSolution.states.length - 1,
+    );
+    el<HTMLButtonElement>("playBtn").disabled = isFinished;
     el<HTMLButtonElement>("pauseBtn").disabled = true;
+  }
+
+  function restartReplay(): void {
+    if (!state.lastSolution) return;
+    pauseReplay();
+    state.replayIndex = 0;
+    renderReplay();
+    playReplay();
   }
 
   function onSpeedChange(): void {
@@ -167,6 +188,7 @@ export function createReplay(ctx: ReplayContext) {
     stepNext,
     playReplay,
     pauseReplay,
+    restartReplay,
     onSpeedChange,
   };
 }

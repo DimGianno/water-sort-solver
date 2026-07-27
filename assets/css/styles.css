@@ -942,6 +942,12 @@ textarea {
   width: 90px;
   accent-color: var(--accent);
 }
+#speedLabel {
+  width: 5ch;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 .replay-placeholder {
   min-height: 310px;
   display: flex;

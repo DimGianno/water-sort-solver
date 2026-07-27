@@ -15,7 +15,7 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 - Solve with fast or optimal-ish A* search modes in a responsive Web Worker
 - Follow expanded-state progress and cancel long searches safely
 - Review a concise move list or include the full state after each move
-- Replay solutions step by step with adjustable playback speed
+- Replay solutions step by step with adjustable playback speed and restart a completed replay in one click
 - Import and export puzzle configurations with a compact shareable code that copies automatically
 - Reload and solve after losing connectivity once the production application reports that offline access is ready
 - Install Chromaflow as a standalone application in browsers that support web app installation
