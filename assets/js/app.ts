@@ -227,4 +227,5 @@ el("prevStepBtn").addEventListener("click", ctx.stepPrev);
 el("nextStepBtn").addEventListener("click", ctx.stepNext);
 el("playBtn").addEventListener("click", ctx.playReplay);
 el("pauseBtn").addEventListener("click", ctx.pauseReplay);
+el("restartReplayBtn").addEventListener("click", ctx.restartReplay);
 el("speedRange").addEventListener("input", ctx.onSpeedChange);

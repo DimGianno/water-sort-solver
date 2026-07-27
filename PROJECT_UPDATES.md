@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-27 - Completed replay restart
+
+- **Type:** Capability
+- **Status:** Ready for review
+- **Summary:** Added a dedicated restart control to completed solution replays.
+- **User impact:** Users can restart playback from the beginning with one click after reaching the final solution step.
+- **Technical impact:** Synchronized completed playback controls, reset replay state before resuming at the selected speed, reserved stable space for changing speed labels, and extended browser coverage for the restart and slider layout flows.
+- **Related area:** Solution replay
+
 ### 2026-07-27 - MIT licensing
 
 - **Type:** Project governance
