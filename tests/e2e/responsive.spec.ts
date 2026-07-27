@@ -5,6 +5,8 @@ import { openFourBottleBuilder } from "./helpers.ts";
 test("the workspace stays usable without page-level horizontal overflow", async ({
   page,
 }, testInfo) => {
+  await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
+  await page.route("https://fonts.gstatic.com/**", (route) => route.abort());
   await page.goto("/");
 
   const initialLayout = await page.evaluate(() => ({
