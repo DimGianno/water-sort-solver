@@ -4,9 +4,39 @@
 
 - **Project maturity:** Portfolio-ready
 - **Actively developed:** Yes
-- **Last reviewed:** 2026-07-26
+- **Last reviewed:** 2026-07-27
 
 ## Known Limitations
+
+### Puzzle state relies on color without a consistent secondary identifier
+
+- **Area:** Accessibility
+- **Severity:** High
+- **User impact:** Users with color-vision deficiencies cannot reliably distinguish filled layers or replay segments, and the compact mobile palette hides color names.
+- **Technical impact:** Builder layers and replay segments use solid backgrounds without visible patterns or symbols; replay segments also lack accessible content summaries.
+- **Current workaround:** Use the visible color names before the palette collapses, builder-layer accessible names with a screen reader, or the textual solution path instead of replay.
+- **Suggested resolution:** Add stable pattern or symbol identifiers to every color and carry them through palette, builder, move text, and replay rendering.
+- **Status:** Confirmed by the 2026-07-27 WCAG 2.2 focused audit
+
+### Theme text and focus indicators miss WCAG contrast thresholds
+
+- **Area:** Accessibility
+- **Severity:** High
+- **User impact:** Low-vision users may be unable to read dark-theme actions and validation feedback or locate keyboard focus in either theme.
+- **Technical impact:** Dark primary buttons and semantic feedback, faint metadata tokens, and the translucent shared focus ring fall below the applicable 4.5:1 text or 3:1 non-text contrast threshold.
+- **Current workaround:** Use the light theme for primary actions and browser or operating-system contrast enhancements where available; no complete workaround exists for the focus ring.
+- **Suggested resolution:** Introduce verified theme-specific text, feedback, and opaque focus tokens, backed by automated contrast checks.
+- **Status:** Confirmed by the 2026-07-27 WCAG 2.2 focused audit
+
+### Dynamic builder and replay updates are not consistently focus-safe or announced
+
+- **Area:** Accessibility
+- **Severity:** High
+- **User impact:** Keyboard focus is lost after palette selection, and screen-reader users are not told which layer becomes active or what a replay step changed.
+- **Technical impact:** Palette rerendering replaces the focused button; selected layers lack a programmatic state; replay step and bottle contents are not exposed through a concise status model.
+- **Current workaround:** Navigate back to the palette after each placement and use the textual move list instead of the interactive replay.
+- **Suggested resolution:** Preserve or restore palette focus, expose the active layer, add concise replay-step announcements and bottle summaries, and consolidate duplicate live messages.
+- **Status:** Confirmed by the 2026-07-27 WCAG 2.2 focused audit
 
 ### Personal puzzle entry is manual or code-based
 
