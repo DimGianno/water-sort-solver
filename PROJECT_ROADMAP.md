@@ -40,13 +40,23 @@
 
 ## Next Features
 
+### Find a solution from an in-progress puzzle
+
+- **Priority:** High
+- **Status:** Planned
+- **Value:** Lets users recreate their current bottle state and recover after becoming stuck partway through a level.
+- **Scope:** Allow colors and empty spaces in any bottle, validate gapless partial states and total color counts, and remove the input-only assumption that the last two bottles remain empty.
+- **Dependencies:** Generalize the builder and validation model; the existing solver already accepts partially filled bottles.
+- **Complexity:** Medium
+- **Portfolio relevance:** Demonstrates a flexible state model while preserving solver correctness and editable input.
+
 ### Import a puzzle from a screenshot
 
 - **Priority:** High
 - **Status:** Idea
 - **Value:** Removes most manual setup and turns a captured game level directly into editable solver input.
 - **Scope:** Accept a screenshot, detect bottle regions and layer colors, map results to the existing palette, and require confirmation before solving.
-- **Dependencies:** A reliable client-side image-processing approach and a representative screenshot fixture set
+- **Dependencies:** The generalized in-progress puzzle model, a reliable client-side image-processing approach, and a representative screenshot fixture set
 - **Complexity:** Large
 - **Portfolio relevance:** Demonstrates computer-vision-assisted input, confidence handling, and human-in-the-loop correction.
 
@@ -62,7 +72,15 @@
 
 ## Suggested Next Milestones
 
-1. **Faster puzzle onboarding — In progress**
+1. **Reliable offline operation — Ready for review**
+   - Goal: Keep puzzle entry and responsive solving available when connectivity disappears.
+   - Included work: Install manifest, content-versioned application-shell cache, solver-worker precaching, update-safe cache cleanup, build-time asset checks, and visible offline readiness.
+   - Completion criteria: A production browser can load once online, reload without network access, and complete a solver run in the cached worker.
+2. **Recover from a stuck level — Planned**
+   - Goal: Find a solution from the exact state of a level that is already in progress.
+   - Included work: Editable partial bottles, color counting across every bottle, generalized validation, imports, and focused solver-flow coverage.
+   - Completion criteria: Any structurally valid reachable state with the complete color inventory can be entered, corrected, and solved.
+3. **Faster puzzle onboarding — In progress**
    - Goal: Reduce the time between opening Chromaflow and seeing a solution.
    - Included work: One-click curated sample completed; screenshot-assisted entry with editable recognition results remains planned.
-   - Completion criteria: New visitors can run a sample immediately, and supported screenshots produce a reviewable puzzle state before solving.
+   - Completion criteria: New visitors can run a sample immediately, and supported fresh or in-progress screenshots produce a reviewable puzzle state before solving.
