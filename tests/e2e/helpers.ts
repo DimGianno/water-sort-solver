@@ -9,7 +9,7 @@ export async function openFourBottleBuilder(page: Page): Promise<void> {
   await expect(page.locator("#colorLimitHint")).toHaveText("2/2 selected");
   await page.getByRole("button", { name: /Build puzzle/ }).click();
   await expect(page.locator(".bottle")).toHaveCount(4);
-  await expect(page.locator(".helper-bottle")).toHaveCount(2);
+  await expect(page.locator(".layer:disabled")).toHaveCount(0);
 }
 
 export function paletteColor(page: Page, color: string): Locator {

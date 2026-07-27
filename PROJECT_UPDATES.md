@@ -11,9 +11,18 @@
 
 ## Current Project Summary
 
-Chromaflow is a browser application for recreating and solving Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the puzzle, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver worker and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
+Chromaflow is a browser application for recreating and solving fresh or partially completed Water Sort puzzles. Users can configure levels with up to 14 bottles, enter colors through layer-first or color-first mobile workflows, validate the current bottle state, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver worker and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-27 - Solve from an in-progress puzzle
+
+- **Type:** Capability
+- **Status:** Ready for review
+- **Summary:** Generalized puzzle entry and validation so fresh and partially solved levels use the same builder.
+- **User impact:** Users who become stuck partway through a level can recreate the exact current bottle state, including colors in former helper bottles, and ask Chromaflow for a solution from there.
+- **Technical impact:** Made every bottle editable, counted color inventory across the full state, accepted partial and empty bottles anywhere, added bottom-up gap validation, routed solver startup through raw-layout validation, preserved version-one import compatibility, and added typed core plus desktop/mobile browser coverage for a reachable mid-game solve.
+- **Related area:** Puzzle entry, validation, and solver onboarding
 
 ### 2026-07-27 - Installable offline application
 
@@ -107,14 +116,14 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 
 ## Current Capabilities
 
-- Configure puzzles with 4 to 14 bottles and two reserved helper bottles.
+- Configure fresh or in-progress puzzles with 4 to 14 fully editable bottles.
 - Select the exact number of colors required by the chosen bottle count.
 - Enter bottle contents with layer-first automatic advancement or color-first painting.
 - Load, solve, and reveal a curated sample puzzle with one action.
 - Limit every selected color to four pieces with live remaining counters.
 - Clear or replace layers while restoring the corresponding color inventory.
 - Clear all editable bottles at once without changing the puzzle configuration.
-- Validate bottle capacity, helper bottles, selected colors, and color counts continuously.
+- Validate bottle capacity, bottom-up layer continuity, selected colors, and complete color counts continuously.
 - Solve puzzles with fast or optimal-ish A* search modes without blocking the interface.
 - Track expanded-state progress and cancel an active search safely.
 - Display concise moves or include the complete state after every move.
@@ -131,6 +140,7 @@ Chromaflow is a browser application for recreating and solving Water Sort puzzle
 - Responsive Web Worker execution with progress events, cancellation, and stale-result protection.
 - Content-versioned offline delivery that keeps the application shell and solver worker on the same release.
 - Mobile-first dual-mode puzzle entry with constrained color inventory and accessible native controls.
+- Unified fresh and mid-game state entry backed by gap-aware validation across every bottle.
 - Continuous validation that prevents invalid solver input and communicates completion state.
 - Layered automated coverage for validation, import/export, solver behavior, browser interactions, and responsive layouts.
 - Cross-browser GitHub Actions quality gate with retained failure traces and reports.

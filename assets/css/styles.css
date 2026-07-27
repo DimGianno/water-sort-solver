@@ -664,11 +664,6 @@ textarea {
     500 10px/1 "DM Mono",
     monospace;
 }
-.helper-label {
-  font-size: 8px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
 .layers {
   display: flex;
   flex-direction: column;
@@ -711,10 +706,6 @@ textarea {
   cursor: default;
   opacity: 0.35;
 }
-.helper-bottle .layers {
-  border-style: dashed;
-}
-
 .fill-toolbar {
   margin-top: 22px;
   display: grid;
@@ -1087,9 +1078,6 @@ footer p {
   .bottle-title {
     min-height: 16px;
     margin-bottom: 3px;
-  }
-  .helper-label {
-    display: none;
   }
   .replay-move {
     display: none;

@@ -85,7 +85,7 @@ function createFixture(bottles: PuzzleState, options: FixtureOptions = {}) {
     showError: (message: string) => messages.errors.push(message),
     showSuccess: (message: string) => messages.successes.push(message),
     readStateFromInput: () => bottles.map((bottle) => bottle.slice()),
-    validateInput: () => options.validationError || null,
+    validateCurrentInput: () => options.validationError || null,
     closeAllPopovers: () => {},
     renderAllLayers: () => {},
     showReplay: (replay: ReplaySolution) => {

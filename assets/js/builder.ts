@@ -152,14 +152,13 @@ export function createBuilder(ctx: BuilderContext) {
 
     const split = Math.ceil(n / 2);
     for (let bottleIndex = 0; bottleIndex < n; bottleIndex++) {
-      const isHelper = bottleIndex >= n - 2;
       const bottle = document.createElement("div");
-      bottle.className = `bottle${isHelper ? " helper-bottle" : ""}`;
+      bottle.className = "bottle";
       bottle.dataset.bottle = String(bottleIndex);
 
       const title = document.createElement("div");
       title.className = "bottle-title";
-      title.innerHTML = `<span>${bottleIndex + 1}</span>${isHelper ? '<span class="helper-label">helper</span>' : ""}`;
+      title.innerHTML = `<span>${bottleIndex + 1}</span>`;
 
       const layers = document.createElement("div");
       layers.className = "layers";
@@ -175,13 +174,9 @@ export function createBuilder(ctx: BuilderContext) {
           `Bottle ${bottleIndex + 1}, layer ${layerIndex + 1}, empty`,
         );
 
-        if (isHelper) {
-          layer.disabled = true;
-        } else {
-          layer.addEventListener("click", () =>
-            onLayerClick(bottleIndex, layerIndex),
-          );
-        }
+        layer.addEventListener("click", () =>
+          onLayerClick(bottleIndex, layerIndex),
+        );
         layers.appendChild(layer);
       }
 
@@ -192,7 +187,7 @@ export function createBuilder(ctx: BuilderContext) {
     el("fillToolbar").hidden = false;
     el("buildMsg").textContent = `${n} bottles ready`;
     el("status").textContent =
-      "Fill every non-helper bottle to unlock the solver.";
+      "Place all four pieces of every color to unlock the solver.";
     el("output").textContent = "Ready.";
 
     renderAllLayers();
@@ -202,8 +197,7 @@ export function createBuilder(ctx: BuilderContext) {
   }
 
   function onLayerClick(bottleIndex: number, layerIndex: number): void {
-    const editableBottles = state.bottleLayers.length - 2;
-    if (!state.bottleLayers.length || bottleIndex >= editableBottles) return;
+    if (!state.bottleLayers.length) return;
 
     state.selectedLayer = { b: bottleIndex, l: layerIndex };
 
@@ -250,7 +244,11 @@ export function createBuilder(ctx: BuilderContext) {
 
     const { b, l } = state.selectedLayer;
     if (!setLayerColor(b, l, color)) return;
-    state.selectedLayer = findNextEmptyLayer(b, l);
+    state.selectedLayer = selectedColors().every(
+      (selectedColor) => remainingFor(selectedColor) === 0,
+    )
+      ? null
+      : findNextEmptyLayer(b, l);
 
     renderAllLayers();
     renderPalette();
@@ -273,10 +271,7 @@ export function createBuilder(ctx: BuilderContext) {
   function clearAllBottles(): void {
     if (!state.bottleLayers.length) return;
 
-    const editableBottles = state.bottleLayers.length - 2;
-    for (let b = 0; b < editableBottles; b++) {
-      state.bottleLayers[b].fill("");
-    }
+    for (const bottle of state.bottleLayers) bottle.fill("");
 
     state.selectedLayer = { b: 0, l: 0 };
     state.activeColor = null;
@@ -291,7 +286,7 @@ export function createBuilder(ctx: BuilderContext) {
     runContinuousValidation();
     updateSolveEnabled();
     el("status").textContent =
-      "Fill every non-helper bottle to unlock the solver.";
+      "Place all four pieces of every color to unlock the solver.";
     el("output").textContent = "Ready.";
   }
 
@@ -304,8 +299,7 @@ export function createBuilder(ctx: BuilderContext) {
     bottleIndex: number,
     layerIndex: number,
   ): SelectedLayer | null {
-    const editableBottles = Math.max(0, state.bottleLayers.length - 2);
-    const totalLayers = editableBottles * CAP;
+    const totalLayers = state.bottleLayers.length * CAP;
     if (!totalLayers) return null;
 
     const start = bottleIndex < 0 ? -1 : bottleIndex * CAP + layerIndex;
@@ -343,12 +337,10 @@ export function createBuilder(ctx: BuilderContext) {
       const b = parseInt(layer.dataset.bottle ?? "", 10);
       const l = parseInt(layer.dataset.layer ?? "", 10);
       const color = state.bottleLayers[b][l] || "";
-      const isHelper = b >= state.bottleLayers.length - 2;
 
       layer.classList.toggle(
         "selected",
-        !isHelper &&
-          !!state.selectedLayer &&
+        !!state.selectedLayer &&
           state.selectedLayer.b === b &&
           state.selectedLayer.l === l,
       );
@@ -356,7 +348,7 @@ export function createBuilder(ctx: BuilderContext) {
       layer.style.backgroundColor = color ? COLOR_PALETTE[color] || "#ddd" : "";
       layer.setAttribute(
         "aria-label",
-        `Bottle ${b + 1}, layer ${l + 1}, ${isHelper ? "helper" : color || "empty"}`,
+        `Bottle ${b + 1}, layer ${l + 1}, ${color || "empty"}`,
       );
     });
   }
@@ -378,9 +370,9 @@ export function createBuilder(ctx: BuilderContext) {
       ? state.bottleLayers[selected.b][selected.l]
       : "";
     el<HTMLButtonElement>("clearLayerBtn").disabled = !selectedValue;
-    el<HTMLButtonElement>("clearAllBtn").disabled = !state.bottleLayers
-      .slice(0, -2)
-      .some((bottle) => bottle.some(Boolean));
+    el<HTMLButtonElement>("clearAllBtn").disabled = !state.bottleLayers.some(
+      (bottle) => bottle.some(Boolean),
+    );
 
     if (state.fillMode === "color") {
       el("paletteTitle").textContent = state.activeColor

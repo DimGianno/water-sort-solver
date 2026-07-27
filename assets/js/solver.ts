@@ -23,7 +23,7 @@ interface SolverContext {
   showError: (message: string) => void;
   showSuccess: (message: string) => void;
   readStateFromInput: () => PuzzleState;
-  validateInput: (bottles: PuzzleState) => string | null;
+  validateCurrentInput: () => string | null;
   closeAllPopovers: () => void;
   renderAllLayers: () => void;
   showReplay: (solution: ReplaySolution) => void;
@@ -60,7 +60,7 @@ export function createSolver(ctx: SolverContext): SolverController {
     showError,
     showSuccess,
     readStateFromInput,
-    validateInput,
+    validateCurrentInput,
     closeAllPopovers,
     renderAllLayers,
     showReplay,
@@ -194,7 +194,7 @@ export function createSolver(ctx: SolverContext): SolverController {
     if (!state.bottleLayers.length) return;
 
     const bottles = readStateFromInput();
-    const validationError = validateInput(bottles);
+    const validationError = validateCurrentInput();
     if (validationError) {
       showError(validationError);
       return;

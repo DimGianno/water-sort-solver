@@ -7,6 +7,7 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 - Build levels with 4–14 bottles and a fixed capacity of four layers
 - Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
+- Recreate fresh levels or partially solved bottle states in the same editable builder
 - Track each color's four available pieces with live counters
 - Clear one layer or every editable bottle while rebuilding a level
 - Choose from a color palette with live input validation
@@ -66,7 +67,7 @@ Playwright starts and stops its dedicated test server automatically on `http://1
 
 GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
 
-The suites cover puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
+The suites cover fresh and in-progress puzzle validation, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
 
@@ -84,7 +85,7 @@ The preview remains available at `http://127.0.0.1:4173` until the command is st
 
 ## How it works
 
-Puzzle states are encoded as ordered bottle contents. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
+Puzzle states are encoded as ordered bottle contents. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
 
 ## Project structure
 

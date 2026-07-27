@@ -62,7 +62,7 @@ function createFixture({
 test("readStateFromInput removes blanks and converts top-first layers to bottom-first bottles", () => {
   const { validation } = createFixture({
     layers: [
-      ["Blue", "", "Red", "Red"],
+      ["", "Blue", "Red", "Red"],
       ["Red", "Blue", "Blue", "Red"],
       ["", "", "", ""],
       ["", "", "", ""],
@@ -75,6 +75,19 @@ test("readStateFromInput removes blanks and converts top-first layers to bottom-
     [],
     [],
   ]);
+});
+
+test("computeUsedCounts includes colors placed in every bottle", () => {
+  const { validation } = createFixture({
+    layers: [
+      ["", "", "Red", "Red"],
+      ["", "Blue", "Blue", "Red"],
+      ["", "", "", "Blue"],
+      ["", "", "Red", "Blue"],
+    ],
+  });
+
+  expect(validation.computeUsedCounts()).toMatchObject({ Red: 4, Blue: 4 });
 });
 
 test("changing puzzle validity cancels an active search before updating the solve button", () => {
@@ -97,13 +110,13 @@ test("changing puzzle validity cancels an active search before updating the solv
   expect(elements.solveBtn.disabled).toBe(false);
 });
 
-test("validateInput accepts a complete puzzle with two empty helper bottles", () => {
+test("validateInput accepts colors distributed across partial bottles", () => {
   const { validation } = createFixture();
   const bottles = [
-    ["Red", "Red", "Blue", "Blue"],
-    ["Blue", "Blue", "Red", "Red"],
-    [],
-    [],
+    ["Red", "Red"],
+    ["Blue", "Blue", "Red"],
+    ["Blue"],
+    ["Red", "Blue"],
   ];
 
   expect(validation.validateInput(bottles)).toBeNull();
@@ -124,27 +137,21 @@ describe("validateInput reports structural and color-count errors", () => {
     );
   });
 
-  test("requires both helper bottles to be empty", () => {
+  test("rejects bottles beyond capacity", () => {
     const bottles = [
-      ["Red", "Red", "Red", "Red"],
+      ["Red", "Red", "Red", "Red", "Red"],
       ["Blue", "Blue", "Blue", "Blue"],
-      ["Red"],
+      [],
       [],
     ];
     expect(validation.validateInput(bottles)).toBe(
-      "Last 2 bottles must be empty (helpers).",
+      `Bottle 1 exceeds the ${CAP}-layer capacity.`,
     );
   });
 
-  test("requires every playable bottle to be full", () => {
-    const bottles = [
-      ["Red", "Red", "Red"],
-      ["Blue", "Blue", "Blue", "Blue"],
-      [],
-      [],
-    ];
-    expect(validation.validateInput(bottles)).toBe(
-      `Bottle 1 must have exactly ${CAP} layers (fill all).`,
+  test("requires the standard color count for the bottle count", () => {
+    expect(validation.validateInput([[], [], [], []], ["Red"])).toBe(
+      "Select exactly 2 colors for 4 bottles.",
     );
   });
 
@@ -173,6 +180,21 @@ describe("validateInput reports structural and color-count errors", () => {
   });
 });
 
+test("validateLayerLayout rejects empty gaps below liquid", () => {
+  const { validation } = createFixture({
+    layers: [
+      ["", "Red", "", "Blue"],
+      ["", "", "Red", "Blue"],
+      ["", "", "", ""],
+      ["", "", "", ""],
+    ],
+  });
+
+  expect(validation.validateLayerLayout()).toBe(
+    "Bottle 1 has an empty gap below a color. Fill partial bottles from the bottom up.",
+  );
+});
+
 test("continuous validation keeps the message and solve button in sync", () => {
   const layers = [
     ["Blue", "Blue", "Red", "Red"],
@@ -190,10 +212,12 @@ test("continuous validation keeps the message and solve button in sync", () => {
   expect(elements.validationMsg.style.color).toBe("#0a7a22");
   expect(elements.solveBtn.disabled).toBe(false);
 
-  state.bottleLayers[0][0] = "";
+  state.bottleLayers[0][2] = "";
   validation.runContinuousValidation();
   validation.updateSolveEnabled();
-  expect(elements.validationMsg.textContent).toMatch(/^Invalid: Bottle 1/);
+  expect(elements.validationMsg.textContent).toBe(
+    "Invalid: Bottle 1 has an empty gap below a color. Fill partial bottles from the bottom up.",
+  );
   expect(elements.validationMsg.style.color).toBe("#b00020");
   expect(elements.solveBtn.disabled).toBe(true);
 });
