@@ -868,6 +868,7 @@ textarea {
   border-radius: 10px;
   color: var(--output-ink);
   background: var(--output-bg);
+  text-align: left;
   white-space: pre-wrap;
   font:
     12px/1.8 "DM Mono",

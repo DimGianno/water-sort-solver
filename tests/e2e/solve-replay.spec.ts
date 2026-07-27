@@ -7,6 +7,7 @@ test("a sample puzzle solves and reveals replay with one click", async ({
 }, testInfo) => {
   await page.goto("/");
 
+  await expect(page.locator("#output")).toHaveCSS("text-align", "left");
   await expect(page.getByLabel("Show states")).not.toBeChecked();
   await expect(page.getByLabel("Concise moves")).not.toBeChecked();
   await page.getByRole("button", { name: "Try a sample" }).click();
