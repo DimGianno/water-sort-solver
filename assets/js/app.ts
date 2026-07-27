@@ -14,6 +14,8 @@ import { createOfflineSupport } from "./offline.ts";
 
 type Theme = "dark" | "light";
 
+const EMPTY_OUTPUT_MESSAGE = "Your step-by-step solution will appear here.";
+
 interface BaseContext {
   CAP: number;
   COLOR_PALETTE: Readonly<Record<string, string>>;
@@ -146,7 +148,7 @@ function resetAll(): void {
   el("validationMsg").textContent = "";
   el("error").textContent = "";
   el("success").textContent = "";
-  el("output").textContent = "Your step-by-step solution will appear here.";
+  el("output").textContent = EMPTY_OUTPUT_MESSAGE;
   el<HTMLButtonElement>("solveBtn").disabled = true;
   el("fillToolbar").hidden = true;
   el<HTMLInputElement>("fillModeLayer").checked = true;
@@ -158,6 +160,7 @@ function resetAll(): void {
 }
 
 initTheme();
+el("output").textContent = EMPTY_OUTPUT_MESSAGE;
 
 void createOfflineSupport({
   statusElement: el("offlineStatus"),

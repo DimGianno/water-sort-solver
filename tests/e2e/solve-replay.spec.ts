@@ -7,6 +7,11 @@ test("a sample puzzle solves and reveals replay with one click", async ({
 }, testInfo) => {
   await page.goto("/");
 
+  const output = page.locator("#output");
+  await expect(output).toHaveCSS("text-align", "left");
+  await expect(output).toHaveText(
+    "Your step-by-step solution will appear here.",
+  );
   await expect(page.getByLabel("Show states")).not.toBeChecked();
   await expect(page.getByLabel("Concise moves")).not.toBeChecked();
   await page.getByRole("button", { name: "Try a sample" }).click();
