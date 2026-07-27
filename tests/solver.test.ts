@@ -149,6 +149,62 @@ test("the curated sample demonstrates the fast versus optimal-ish tradeoff", () 
   if (!fast.ok || !optimal.ok) throw new Error("Expected both modes to solve");
   expect(fast.moves.length).toBeGreaterThan(optimal.moves.length);
   expect(optimal.explored).toBeGreaterThan(fast.explored * 5);
+}, 15000);
+
+test("optimal search improves the reported puzzle beyond the old heuristic", () => {
+  const bottles = [
+    ["Gray", "Light Blue", "Red", "Blue"],
+    ["Pink", "Blue", "Purple", "Dark Green"],
+    ["Light Green", "Dark Green", "Gray", "Green"],
+    ["Pink", "Gray", "Brown", "Red"],
+    ["Light Green", "Red", "Orange", "Purple"],
+    ["Brown", "Purple", "Orange", "Brown"],
+    ["Yellow", "Light Green", "Pink", "Brown"],
+    ["Gray", "Green", "Pink", "Red"],
+    ["Blue", "Light Blue", "Yellow", "Light Blue"],
+    ["Blue", "Green", "Dark Green", "Orange"],
+    ["Green", "Dark Green", "Yellow", "Light Green"],
+    ["Purple", "Light Blue", "Orange", "Yellow"],
+    [],
+    [],
+  ].map((bottle) => bottle.reverse());
+
+  const result = aStarSolve(bottles, "optimal", { cap: CAP });
+
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.reason);
+  expect(result.moves).toHaveLength(39);
+});
+
+test("move pruning keeps distinct matching-color pours from different sources", () => {
+  const bottles = [
+    ["Blue", "Red", "Light Blue", "Light Blue"],
+    ["Dark Green", "Purple", "Blue", "Blue"],
+    ["Green", "Green", "Green"],
+    ["Red", "Brown", "Brown"],
+    ["Purple", "Orange", "Red", "Light Green"],
+    ["Brown", "Orange", "Purple", "Purple"],
+    ["Brown", "Pink", "Light Green", "Light Green"],
+    ["Red", "Pink", "Pink", "Pink"],
+    ["Light Blue"],
+    ["Orange", "Dark Green", "Green", "Blue"],
+    ["Light Green", "Yellow", "Yellow", "Yellow"],
+    ["Yellow", "Orange", "Light Blue"],
+    ["Gray", "Gray", "Gray", "Gray"],
+    ["Dark Green", "Dark Green"],
+  ];
+
+  const result = aStarSolve(bottles, "optimal", { cap: CAP });
+
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error(result.reason);
+  expect(result.moves).toHaveLength(24);
+  expect(result.moves[0]).toEqual({
+    from: 8,
+    to: 11,
+    amt: 1,
+    color: "Light Blue",
+  });
 });
 
 test("solve recognizes an already solved puzzle through the worker", async () => {

@@ -2,7 +2,7 @@
 
 ## Latest Stable State
 
-- **Last updated:** 2026-07-27
+- **Last updated:** 2026-07-28
 - **Current version:** 1.0.0
 - **Current status:** Active
 - **Primary branch:** `main`
@@ -14,6 +14,15 @@
 Chromaflow is a browser application for importing, recreating, and solving fresh or partially completed Water Sort puzzles. Users can recognize supported screenshots locally, configure levels with up to 14 bottles, correct colors through layer-first or color-first mobile workflows, validate the current bottle state, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver, screenshot recognizer, and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-28 - More reliable A* move optimality
+
+- **Type:** Correctness
+- **Status:** Ready for review
+- **Summary:** Corrected unsafe move pruning and strengthened the distinction between Fast and Optimal-ish search behavior.
+- **User impact:** Equivalent-looking pours from meaningfully different source bottles are no longer discarded, and Optimal-ish can return shorter solutions that the previous heuristic missed.
+- **Technical impact:** Made symmetric-move signatures source-aware, limited history-dependent reverse-pour pruning to Fast mode, replaced the Optimal-ish estimate with an admissible boundary-and-color-spread lower bound, and added regression coverage for the reported 14-bottle puzzle and its critical intermediate state.
+- **Related area:** Solver correctness and search quality
 
 ### 2026-07-27 - Completed replay restart
 
