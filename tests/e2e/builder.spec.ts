@@ -19,9 +19,13 @@ test("configuration uses a bounded native bottle picker and color tiles", async 
 
   const redInput = page.getByLabel("Red", { exact: true });
   const redTile = page.locator("#colorChecklist label", { has: redInput });
+  const redName = redTile.locator(".color-name");
+  await expect(redName).toHaveCSS("text-align", "center");
   await expect(redTile).not.toHaveClass(/is-selected/);
   await redInput.check();
   await expect(redTile).toHaveClass(/is-selected/);
+  await expect(redTile).toHaveCSS("border-top-width", "2px");
+  await expect(redName).toHaveCSS("font-weight", "800");
   await redInput.uncheck();
   await expect(redTile).not.toHaveClass(/is-selected/);
 });
