@@ -91,6 +91,7 @@ export function createBuilder(ctx: BuilderContext) {
       swatch.style.background = COLOR_PALETTE[color] || "#ccc";
 
       const name = document.createElement("span");
+      name.className = "color-name";
       name.textContent = color;
 
       label.append(checkbox, swatch, name);
