@@ -680,6 +680,17 @@ textarea {
   border: 1px dashed var(--bd);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
+@media (min-width: 761px) {
+  .main-panel:has(.empty-stage),
+  .editor-card:has(.empty-stage) {
+    display: flex;
+    flex-direction: column;
+  }
+  .editor-card:has(.empty-stage),
+  .empty-stage {
+    flex: 1;
+  }
+}
 .empty-stage strong,
 .replay-placeholder strong {
   margin: 15px 0 5px;
