@@ -2,6 +2,8 @@
 
 Chromaflow is a browser-based Water Sort puzzle solver that turns a manually recreated level into a step-by-step solution. It combines an interactive puzzle builder with an A* search engine and a visual replay experience.
 
+**Live application:** [chromaflow.dimgianno.com](https://chromaflow.dimgianno.com/)
+
 ## Highlights
 
 - Build levels with 4–14 bottles and a fixed capacity of four layers
@@ -43,7 +45,7 @@ Offline support requires HTTPS in production (or `localhost` during development)
 
 Choose **Import from a screenshot**, select a JPEG, PNG, or WebP image, and wait for Chromaflow to detect the bottle rows and liquid layers. Recognition runs entirely in the browser: the image is not uploaded and no internet connection is required once the application is ready offline.
 
-The first recognition profile supports the straight, light-outlined bottle style used by the included test fixtures and calibrated iPhone screenshots. Screen resolution may vary because bottle geometry is measured proportionally after the image is normalized. After applying the result, review every editable layer before solving. Screenshots from games with substantially different bottle artwork or liquid colors may still require manual entry.
+The first recognition profile supports screenshots from Water Sort Puzzle on the [App Store](https://apps.apple.com/app/water-sort-puzzle/id1514542157) and [Google Play](https://play.google.com/store/apps/details?id=com.gma.water.sort.puzzle), based on its straight, light-outlined bottle style and the included calibrated iPhone screenshots. Chromaflow is an independent solver and is not affiliated with the game or its developer. Screen resolution may vary because bottle geometry is measured proportionally after the image is normalized. After applying the result, review every editable layer before solving. Screenshots from games with substantially different bottle artwork or liquid colors may still require manual entry.
 
 ## Test
 
