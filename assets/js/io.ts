@@ -81,7 +81,7 @@ export function createImportExport(ctx: ImportExportContext) {
   }
 
   function toExportPayload(): ExportPayload {
-    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
+    const n = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
     const colors = selectedColors();
     const layers = state.bottleLayers.map((arr) => arr.slice());
     return { v: 1, n, colors, layers };
@@ -178,7 +178,7 @@ export function createImportExport(ctx: ImportExportContext) {
   function applyImport(obj: unknown): void {
     const parsed = normalizeImport(obj);
 
-    el<HTMLInputElement>("numBottles").value = String(parsed.n);
+    el<HTMLSelectElement>("numBottles").value = String(parsed.n);
     el("colorChecklist")
       .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
       .forEach((cb) => {

@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-28 - Clearer level configuration controls
+
+- **Type:** User experience
+- **Status:** Ready for review
+- **Summary:** Replaced free-form bottle-count entry and visible color checkboxes with bounded, touch-friendly native controls.
+- **User impact:** Bottle counts are selected from the valid 4–14 range using the device's familiar picker, while level colors appear as softly tinted tiles with clear selected, available, and unavailable states.
+- **Technical impact:** Added a semantic native select, full-tile accessible checkbox targets, color-aware responsive styling, and cross-browser interaction and visual-regression coverage.
+- **Related area:** Puzzle configuration and mobile input
+
 ### 2026-07-28 - More reliable A* move optimality
 
 - **Type:** Correctness

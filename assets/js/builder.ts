@@ -35,7 +35,7 @@ export function createBuilder(ctx: BuilderContext) {
   } = ctx;
 
   function updateSelectAllVisibility(): void {
-    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
+    const n = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
     el("selectAllBtn").style.display = n === 14 ? "inline-block" : "none";
   }
 
@@ -50,8 +50,12 @@ export function createBuilder(ctx: BuilderContext) {
       ),
     );
     const lock = chosen >= max;
-    for (const checkbox of checkboxes)
+    for (const checkbox of checkboxes) {
       checkbox.disabled = !checkbox.checked && lock;
+      const tile = checkbox.closest("label");
+      tile?.classList.toggle("is-selected", checkbox.checked);
+      tile?.classList.toggle("is-disabled", checkbox.disabled);
+    }
   }
 
   function buildChecklist(): void {
@@ -60,6 +64,7 @@ export function createBuilder(ctx: BuilderContext) {
 
     DEFAULT_COLORS.forEach((color) => {
       const label = document.createElement("label");
+      label.style.setProperty("--tile-color", COLOR_PALETTE[color] || "#ccc");
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.value = color;
@@ -97,7 +102,7 @@ export function createBuilder(ctx: BuilderContext) {
   }
 
   function selectAllColors(): void {
-    if (parseInt(el<HTMLInputElement>("numBottles").value, 10) !== 14) return;
+    if (parseInt(el<HTMLSelectElement>("numBottles").value, 10) !== 14) return;
 
     el("colorChecklist")
       .querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
@@ -115,7 +120,7 @@ export function createBuilder(ctx: BuilderContext) {
   }
 
   function buildBottlesUI(): void {
-    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
+    const n = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
     const colors = selectedColors();
 
     showError("");

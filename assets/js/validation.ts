@@ -29,7 +29,7 @@ export function createValidation(ctx: ValidationContext) {
   }
 
   function colorMaxAllowed(): number {
-    const n = parseInt(el<HTMLInputElement>("numBottles").value, 10);
+    const n = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
     return Math.max(1, Math.min(12, n - 2));
   }
 

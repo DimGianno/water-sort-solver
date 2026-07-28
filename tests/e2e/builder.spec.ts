@@ -6,6 +6,26 @@ import {
   paletteColor,
 } from "./helpers.ts";
 
+test("configuration uses a bounded native bottle picker and color tiles", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const bottlePicker = page.getByLabel("Number of bottles");
+  await expect(bottlePicker).toHaveJSProperty("tagName", "SELECT");
+  await expect(bottlePicker.locator("option")).toHaveCount(11);
+  await bottlePicker.selectOption("4");
+  await expect(bottlePicker).toHaveValue("4");
+
+  const redInput = page.getByLabel("Red", { exact: true });
+  const redTile = page.locator("#colorChecklist label", { has: redInput });
+  await expect(redTile).not.toHaveClass(/is-selected/);
+  await redInput.check();
+  await expect(redTile).toHaveClass(/is-selected/);
+  await redInput.uncheck();
+  await expect(redTile).not.toHaveClass(/is-selected/);
+});
+
 test("layer-first entry restores inventory when a layer is cleared", async ({
   page,
 }) => {
