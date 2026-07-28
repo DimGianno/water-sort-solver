@@ -2,6 +2,29 @@ import { expect, test } from "@playwright/test";
 
 import { openFourBottleBuilder } from "./helpers.ts";
 
+test("the empty desktop workspace fills the configure panel height", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name.startsWith("mobile"));
+
+  await page.goto("/");
+
+  const panelBounds = await page.evaluate(() => {
+    const setupPanel = document.querySelector(".setup-panel");
+    const solveCard = document.querySelector(".solve-card");
+    if (!setupPanel || !solveCard) throw new Error("Expected workspace panels");
+
+    return {
+      setupBottom: setupPanel.getBoundingClientRect().bottom,
+      solveBottom: solveCard.getBoundingClientRect().bottom,
+    };
+  });
+
+  expect(
+    Math.abs(panelBounds.setupBottom - panelBounds.solveBottom),
+  ).toBeLessThan(1);
+});
+
 test("the workspace stays usable without page-level horizontal overflow", async ({
   page,
 }, testInfo) => {
