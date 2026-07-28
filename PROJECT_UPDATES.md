@@ -6,7 +6,7 @@
 - **Current version:** 1.0.0
 - **Current status:** Active
 - **Primary branch:** `main`
-- **Production URL:** Not deployed
+- **Production URL:** https://chromaflow.dimgianno.com/
 - **Staging URL:** Not deployed
 
 ## Current Project Summary
