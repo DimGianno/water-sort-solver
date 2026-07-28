@@ -3,7 +3,7 @@ import type { Locator, Page } from "@playwright/test";
 
 export async function openFourBottleBuilder(page: Page): Promise<void> {
   await page.goto("/");
-  await page.getByLabel("Number of bottles").fill("4");
+  await page.getByLabel("Number of bottles").selectOption("4");
   await page.getByLabel("Red", { exact: true }).check();
   await page.getByLabel("Blue", { exact: true }).check();
   await expect(page.locator("#colorLimitHint")).toHaveText("2/2 selected");

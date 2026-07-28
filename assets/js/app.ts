@@ -119,7 +119,7 @@ Object.assign(ctx, createSolver(ctx));
 
 function resetAll(): void {
   ctx.cancelSolve?.({ silent: true });
-  el<HTMLInputElement>("numBottles").value = "11";
+  el<HTMLSelectElement>("numBottles").value = "11";
   el<HTMLInputElement>("showStates").checked = false;
   el<HTMLInputElement>("shortMoves").checked = false;
   el<HTMLSelectElement>("modeSel").value = "fast";
@@ -177,10 +177,7 @@ ctx.updateSelectAllVisibility();
 el("resetBtn").addEventListener("click", resetAll);
 
 el("numBottles").addEventListener("change", () => {
-  let v = parseInt(el<HTMLInputElement>("numBottles").value, 10);
-  if (v > 14) v = 14;
-  if (v < 4) v = 4;
-  el<HTMLInputElement>("numBottles").value = String(v);
+  const v = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
 
   const max = ctx.colorMaxAllowed();
   const checked = Array.from(

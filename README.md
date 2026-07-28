@@ -6,14 +6,14 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 
 ## Highlights
 
-- Build levels with 4–14 bottles and a fixed capacity of four layers
+- Select 4–14 bottles with a bounded native picker and build levels with a fixed capacity of four layers
 - Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
 - Recreate fresh levels or partially solved bottle states in the same editable builder
 - Import supported Water Sort screenshots with private, offline recognition and review the detected layers before solving
 - Track each color's four available pieces with live counters
 - Clear one layer or every editable bottle while rebuilding a level
-- Choose from a color palette with live input validation
+- Choose level colors from highlighted, tap-friendly tiles with live selection limits and input validation
 - Solve with fast or optimal-ish A* search modes in a responsive Web Worker
 - Follow expanded-state progress and cancel long searches safely
 - Review a concise move list or include the full state after each move

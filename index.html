@@ -97,8 +97,24 @@
               <label for="numBottles">Number of bottles</label>
               <span>4–14</span>
             </div>
-            <input id="numBottles" type="number" min="4" max="14" value="14" />
-            <p class="hint">
+            <select
+              id="numBottles"
+              class="bottle-count-select"
+              aria-describedby="bottleCountHint"
+            >
+              <option value="4">4 bottles</option>
+              <option value="5">5 bottles</option>
+              <option value="6">6 bottles</option>
+              <option value="7">7 bottles</option>
+              <option value="8">8 bottles</option>
+              <option value="9">9 bottles</option>
+              <option value="10">10 bottles</option>
+              <option value="11">11 bottles</option>
+              <option value="12">12 bottles</option>
+              <option value="13">13 bottles</option>
+              <option value="14" selected>14 bottles</option>
+            </select>
+            <p id="bottleCountHint" class="hint">
               Each bottle holds four layers. Fresh and partially solved levels
               use the same editable builder.
             </p>
