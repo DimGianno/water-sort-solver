@@ -335,6 +335,10 @@ export function createImportExport(ctx: ImportExportContext) {
     updateSolveEnabled();
   }
 
+  function importCode(code: string): void {
+    applyImport(decodeImport(code));
+  }
+
   async function copyExportCode(code: string): Promise<boolean> {
     try {
       const clipboard = ctx.clipboard ?? globalThis.navigator?.clipboard;
@@ -388,8 +392,7 @@ export function createImportExport(ctx: ImportExportContext) {
     }
     try {
       const code = el<HTMLTextAreaElement>("ioText").value;
-      const obj = decodeImport(code);
-      applyImport(obj);
+      importCode(code);
       el("ioMsg").textContent = "Imported successfully.";
     } catch (error) {
       el("ioMsg").textContent = "Import failed: " + getErrorMessage(error);
@@ -398,6 +401,7 @@ export function createImportExport(ctx: ImportExportContext) {
 
   return {
     applyImport,
+    importCode,
     showIO,
     hideIO,
     onExport,
