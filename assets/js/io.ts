@@ -34,6 +34,24 @@ interface NormalizedImport {
 
 type ToastTone = "success" | "warning";
 
+const COMPACT_CODEC_VERSION = 1;
+const MIN_BOTTLES = 4;
+const MAX_BOTTLES = 14;
+const COMPACT_COLOR_NAMES = [
+  "Red",
+  "Pink",
+  "Orange",
+  "Yellow",
+  "Green",
+  "Dark Green",
+  "Light Green",
+  "Blue",
+  "Light Blue",
+  "Purple",
+  "Gray",
+  "Brown",
+] as const;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -101,26 +119,137 @@ export function createImportExport(ctx: ImportExportContext) {
   }
 
   function encodeExport(obj: ExportPayload): string {
-    const json = JSON.stringify(obj);
-    const bytes = new TextEncoder().encode(json);
+    const bottleCount = obj.layers.length;
+    if (bottleCount < MIN_BOTTLES || bottleCount > MAX_BOTTLES) {
+      throw new Error(
+        `Cannot export ${bottleCount} bottles; expected ${MIN_BOTTLES} to ${MAX_BOTTLES}.`,
+      );
+    }
+    if (obj.n !== bottleCount) {
+      throw new Error("Cannot export a mismatched bottle count.");
+    }
+
+    const bytes = new Uint8Array(1 + bottleCount * 2);
+    bytes[0] = (COMPACT_CODEC_VERSION << 4) | bottleCount;
+    let slot = 0;
+
+    for (let bottle = 0; bottle < bottleCount; bottle++) {
+      const layers = obj.layers[bottle];
+      if (layers.length !== CAP) {
+        throw new Error(
+          `Cannot export bottle ${bottle + 1}; expected ${CAP} layer slots.`,
+        );
+      }
+
+      for (const color of layers) {
+        const colorIndex = COMPACT_COLOR_NAMES.findIndex(
+          (candidate) => candidate === color,
+        );
+        if (color !== "" && colorIndex === -1) {
+          throw new Error(`Cannot export unknown color "${color}".`);
+        }
+
+        const colorCode = color === "" ? 0 : colorIndex + 1;
+        const byte = 1 + Math.floor(slot / 2);
+        if (slot % 2 === 0) bytes[byte] = colorCode << 4;
+        else bytes[byte] |= colorCode;
+        slot++;
+      }
+    }
+
     return "WS1:" + bytesToBase64(bytes);
   }
 
-  function decodeImport(code: string): Record<string, unknown> {
-    const trimmed = (code || "").trim();
-    if (!trimmed.startsWith("WS1:"))
-      throw new Error("Invalid code (missing WS1: prefix).");
-    const b64 = trimmed.slice(4);
+  function tryDecodeLegacyImport(
+    bytes: Uint8Array,
+  ): Record<string, unknown> | null {
     let obj: unknown;
     try {
-      const bytes = base64ToBytes(b64);
       const json = new TextDecoder().decode(bytes);
       obj = JSON.parse(json);
     } catch {
-      throw new Error("Invalid code payload.");
+      return null;
     }
     if (!isRecord(obj) || obj.v !== 1) throw new Error("Unsupported version.");
     return obj;
+  }
+
+  function decodeCompactImport(bytes: Uint8Array): ExportPayload {
+    if (bytes.length < 1) throw new Error("Compact puzzle payload is empty.");
+
+    const version = bytes[0] >> 4;
+    const bottleCount = bytes[0] & 0x0f;
+    if (version !== COMPACT_CODEC_VERSION) {
+      throw new Error(`Unsupported compact puzzle version ${version}.`);
+    }
+    if (bottleCount < MIN_BOTTLES || bottleCount > MAX_BOTTLES) {
+      throw new Error(
+        `Invalid compact puzzle bottle count ${bottleCount}; expected ${MIN_BOTTLES} to ${MAX_BOTTLES}.`,
+      );
+    }
+
+    const expectedLength = 1 + bottleCount * 2;
+    if (bytes.length !== expectedLength) {
+      throw new Error(
+        `Invalid compact puzzle length: expected ${expectedLength} bytes for ${bottleCount} bottles, received ${bytes.length}.`,
+      );
+    }
+
+    const layers = Array.from({ length: bottleCount }, () =>
+      Array<string>(CAP).fill(""),
+    );
+    const usedColors = new Set<string>();
+
+    for (let slot = 0; slot < bottleCount * CAP; slot++) {
+      const byte = bytes[1 + Math.floor(slot / 2)];
+      const colorCode = slot % 2 === 0 ? byte >> 4 : byte & 0x0f;
+      if (colorCode > COMPACT_COLOR_NAMES.length) {
+        const bottle = Math.floor(slot / CAP);
+        const layer = slot % CAP;
+        throw new Error(
+          `Invalid compact puzzle color code ${colorCode} at bottle ${bottle + 1}, layer ${layer + 1}.`,
+        );
+      }
+
+      const color = colorCode === 0 ? "" : COMPACT_COLOR_NAMES[colorCode - 1];
+      layers[Math.floor(slot / CAP)][slot % CAP] = color;
+      if (color) usedColors.add(color);
+    }
+
+    return {
+      v: 1,
+      n: bottleCount,
+      colors: DEFAULT_COLORS.filter((color) => usedColors.has(color)),
+      layers,
+    };
+  }
+
+  function decodeImport(code: string): unknown {
+    const trimmed = (code || "").trim();
+    if (!trimmed.startsWith("WS1:"))
+      throw new Error("Invalid code (missing WS1: prefix).");
+
+    let bytes: Uint8Array;
+    try {
+      bytes = base64ToBytes(trimmed.slice(4));
+    } catch {
+      throw new Error("Invalid code payload.");
+    }
+
+    const legacy = tryDecodeLegacyImport(bytes);
+    if (legacy) return legacy;
+
+    const version = bytes.length ? bytes[0] >> 4 : -1;
+    const bottleCount = bytes.length ? bytes[0] & 0x0f : -1;
+    const expectedLength = 1 + bottleCount * 2;
+    const looksCompact =
+      version === COMPACT_CODEC_VERSION ||
+      (bottleCount >= MIN_BOTTLES &&
+        bottleCount <= MAX_BOTTLES &&
+        bytes.length === expectedLength);
+    if (!looksCompact) throw new Error("Invalid code payload.");
+
+    return decodeCompactImport(bytes);
   }
 
   function showIO(mode: "export" | "import"): void {

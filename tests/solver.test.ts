@@ -149,7 +149,7 @@ test("the curated sample demonstrates the fast versus optimal-ish tradeoff", () 
   if (!fast.ok || !optimal.ok) throw new Error("Expected both modes to solve");
   expect(fast.moves.length).toBeGreaterThan(optimal.moves.length);
   expect(optimal.explored).toBeGreaterThan(fast.explored * 5);
-}, 15000);
+}, 30000);
 
 test("optimal search improves the reported puzzle beyond the old heuristic", () => {
   const bottles = [

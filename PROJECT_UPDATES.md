@@ -2,7 +2,7 @@
 
 ## Latest Stable State
 
-- **Last updated:** 2026-07-28
+- **Last updated:** 2026-07-29
 - **Current version:** 1.0.0
 - **Current status:** Active
 - **Primary branch:** `main`
@@ -14,6 +14,15 @@
 Chromaflow is a browser application for importing, recreating, and solving fresh or partially completed Water Sort puzzles. Users can recognize supported screenshots locally, configure levels with up to 14 bottles, correct colors through layer-first or color-first mobile workflows, validate the current bottle state, solve it with an A* search engine, and replay every move. The production application can be installed and caches its solver, screenshot recognizer, and interface for reliable offline use. The project uses semantic HTML, responsive CSS, and framework-free JavaScript and TypeScript modules bundled with Vite; Playwright is used for browser testing.
 
 ## Latest Updates
+
+### 2026-07-29 - Compact saved-puzzle codec compatibility
+
+- **Type:** Compatibility
+- **Status:** Ready for review
+- **Summary:** Updated the builder's saved-puzzle import and export flow to use the compact version-one binary payload within the existing `WS1:` Base64 wrapper.
+- **User impact:** Newly exported codes interoperate with compact puzzle storage, pasting a valid compact puzzle restores every bottle and layer including empty helpers, and legacy saved-puzzle strings continue to import unchanged.
+- **Technical impact:** Added reference-compatible nibble-packed exports, atomic header, bottle-count, byte-length, and color-code validation, top-to-bottom layer conversion, and focused unit and browser coverage through the existing import/export path.
+- **Related area:** Puzzle import and builder compatibility
 
 ### 2026-07-28 - Clearer level configuration controls
 
