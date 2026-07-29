@@ -136,7 +136,9 @@ export function createBuilder(ctx: BuilderContext) {
     if (colors.length !== maxColors)
       return showError(`Select exactly ${maxColors} colors.`);
 
-    state.bottleLayers = Array.from({ length: n }, () => Array(CAP).fill(""));
+    state.bottleLayers = Array.from({ length: n }, () =>
+      Array<string>(CAP).fill(""),
+    );
     state.selectedLayer = { b: 0, l: 0 };
     state.openPopoverBottle = null;
     state.activeColor = null;

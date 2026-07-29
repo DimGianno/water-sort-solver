@@ -47,11 +47,9 @@ interface SolverController {
 }
 
 function getErrorMessage(error: unknown): string {
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    if (message) return String(message);
-  }
-  return String(error);
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "Unknown error.";
 }
 
 export function createSolver(ctx: SolverContext): SolverController {

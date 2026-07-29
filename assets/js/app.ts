@@ -222,7 +222,9 @@ el("sampleBtn").addEventListener("click", () => {
   ctx.solve();
 });
 
-el("exportBtn").addEventListener("click", ctx.onExport);
+el("exportBtn").addEventListener("click", () => {
+  void ctx.onExport();
+});
 
 el("solveBtn").addEventListener("click", ctx.solve);
 
