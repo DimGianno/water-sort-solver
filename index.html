@@ -92,6 +92,41 @@
             </div>
           </div>
 
+          <div class="known-level-card">
+            <div class="field-label-row">
+              <label for="knownLevelSelect">Known level</label>
+              <span>Online library</span>
+            </div>
+            <div class="known-level-actions">
+              <select
+                id="knownLevelSelect"
+                class="known-level-select"
+                aria-describedby="knownLevelStatus"
+                disabled
+              >
+                <option value="">Loading levels...</option>
+              </select>
+              <button
+                id="knownLevelImportBtn"
+                class="secondary-btn"
+                type="button"
+                disabled
+              >
+                Import
+              </button>
+            </div>
+            <p
+              id="knownLevelStatus"
+              class="small known-level-status"
+              role="status"
+              aria-live="polite"
+            >
+              Loading known levels...
+            </p>
+          </div>
+
+          <div class="choice-divider"><span>or configure manually</span></div>
+
           <div class="field-group">
             <div class="field-label-row">
               <label for="numBottles">Number of bottles</label>

@@ -12,6 +12,7 @@ import { createImportExport } from "./io.ts";
 import { createSolver } from "./solver.ts";
 import { createOfflineSupport } from "./offline.ts";
 import { createScreenshotImport } from "./screenshot.ts";
+import { createKnownLevels } from "./levels.ts";
 
 type Theme = "dark" | "light";
 
@@ -32,6 +33,7 @@ type AppContext = BaseContext &
   ReturnType<typeof createReplay> &
   ReturnType<typeof createBuilder> &
   ReturnType<typeof createImportExport> &
+  ReturnType<typeof createKnownLevels> &
   ReturnType<typeof createScreenshotImport> &
   ReturnType<typeof createSolver>;
 
@@ -114,6 +116,7 @@ Object.assign(ctx, createValidation(ctx));
 Object.assign(ctx, createReplay(ctx));
 Object.assign(ctx, createBuilder(ctx));
 Object.assign(ctx, createImportExport(ctx));
+Object.assign(ctx, createKnownLevels(ctx));
 Object.assign(ctx, createScreenshotImport(ctx));
 Object.assign(ctx, createSolver(ctx));
 
@@ -155,6 +158,8 @@ function resetAll(): void {
   el<HTMLButtonElement>("solveBtn").disabled = true;
   el("fillToolbar").hidden = true;
   el<HTMLInputElement>("fillModeLayer").checked = true;
+  el<HTMLSelectElement>("knownLevelSelect").value = "";
+  el<HTMLButtonElement>("knownLevelImportBtn").disabled = true;
 
   ctx.hideIO();
   ctx.closeScreenshotImport();
@@ -173,6 +178,7 @@ void createOfflineSupport({
 
 ctx.buildChecklist();
 ctx.updateSelectAllVisibility();
+void ctx.loadKnownLevels();
 
 el("resetBtn").addEventListener("click", resetAll);
 
@@ -198,6 +204,8 @@ el("numBottles").addEventListener("change", () => {
   }
 });
 el("importBtn").addEventListener("click", ctx.onImport);
+el("knownLevelSelect").addEventListener("change", ctx.onKnownLevelChange);
+el("knownLevelImportBtn").addEventListener("click", ctx.importKnownLevel);
 el("ioCloseBtn").addEventListener("click", ctx.hideIO);
 el("ioApplyBtn").addEventListener("click", ctx.onIOApply);
 el("screenshotBtn").addEventListener("click", ctx.chooseScreenshot);

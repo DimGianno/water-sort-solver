@@ -4,7 +4,7 @@
 
 - **Project maturity:** Portfolio-ready
 - **Actively developed:** Yes
-- **Last reviewed:** 2026-07-27
+- **Last reviewed:** 2026-07-29
 
 ## Known Limitations
 
@@ -62,5 +62,5 @@
    - Completion criteria: Any structurally valid reachable state with the complete color inventory can be entered, corrected, and solved.
 3. **Faster puzzle onboarding — Ready for review**
    - Goal: Reduce the time between opening Chromaflow and seeing a solution.
-   - Included work: One-click curated sample plus offline screenshot-assisted entry with resolution-independent geometry, calibrated colors, strict validation, and editable recognition results.
-   - Completion criteria: New visitors can run a sample immediately, and supported fresh or in-progress screenshots produce a reviewable puzzle state before solving.
+   - Included work: One-click curated sample, a MongoDB-backed known-level selector, plus offline screenshot-assisted entry with resolution-independent geometry, calibrated colors, strict validation, and editable recognition results.
+   - Completion criteria: New visitors can run a sample immediately, select a stored solvable level when online, and turn supported fresh or in-progress screenshots into a reviewable puzzle state before solving.

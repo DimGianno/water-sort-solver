@@ -7,6 +7,7 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 ## Highlights
 
 - Select 4–14 bottles with a bounded native picker and build levels with a fixed capacity of four layers
+- Select a solvable known level from the MongoDB-backed online library and import it into the editable builder
 - Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
 - Recreate fresh levels or partially solved bottle states in the same editable builder
@@ -33,7 +34,15 @@ npm install
 npm run dev
 ```
 
-Then visit the local URL shown by Vite (normally `http://localhost:5173`). The application remains framework-free and has no production runtime dependencies.
+Then visit the local URL shown by Vite (normally `http://localhost:5173`). The browser application remains framework-free. The known-level library requires the Vercel Function described below; when that endpoint is unavailable, manual setup, screenshots, and saved-code imports continue to work.
+
+## Connect the known-level library
+
+Chromaflow reads known levels through the same-origin `/api/levels` Vercel Function. The function connects to the `chromaflow` database and `levels` collection, returns only records marked `solvable: true`, and converts each generic MongoDB Binary puzzle into the existing `WS1:` import format. MongoDB credentials never enter the browser bundle.
+
+Create a dedicated Atlas database user with read-only access to `chromaflow.levels`, then add its connection string to the Vercel project as a sensitive environment variable named `MONGODB_URI`. Configure it for the environments that need the library—normally Production and Preview—and redeploy after adding or changing the value. Atlas Network Access must also allow connections from the Vercel deployment.
+
+For local end-to-end use, copy `.env.example` to the ignored `.env.local` file, add the development connection string, and run the project with `vercel dev`. The regular `npm run dev` workflow remains sufficient for browser-only development and testing.
 
 ## Use offline
 
@@ -94,16 +103,18 @@ The preview remains available at `http://127.0.0.1:4173` until the command is st
 
 ## How it works
 
-Puzzle states are encoded as ordered bottle contents. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
+Puzzle states are encoded as ordered bottle contents. The known-level endpoint reads solvable MongoDB documents on the server, validates the version-one compact Binary shape, and returns browser-safe level numbers and `WS1:` codes. The selected code then follows the same import and validation path as a pasted saved puzzle. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
 
 ## Project structure
 
 ```text
+api/levels.ts           Read-only MongoDB level catalog Vercel Function
 index.html              Interface and page structure
 assets/css/styles.css   Responsive visual system and themes
 assets/js/app.ts          Typed application state and event wiring
 assets/js/app-types.ts    Shared application state and UI contracts
 assets/js/builder.ts      Typed puzzle builder interactions
+assets/js/levels.ts       Known-level catalog loading and import controller
 assets/js/solver.ts       Typed worker lifecycle and solution UI controller
 assets/js/solver-core.ts  Typed A* search implementation
 assets/js/solver-types.ts Shared puzzle, result, and worker message types
@@ -123,7 +134,7 @@ tsconfig.json             Application and core-test TypeScript checking
 
 ## Built with
 
-Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite. Shared contracts cover application state, puzzle validation, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. No production runtime dependencies are required; Vitest runs typed core tests and Playwright provides cross-browser end-to-end coverage.
+Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite, plus a Node.js Vercel Function using the official MongoDB driver for read-only known-level access. Shared contracts cover application state, puzzle validation, level loading, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. Vitest runs typed core and API tests, while Playwright provides cross-browser end-to-end coverage.
 
 ## License
 

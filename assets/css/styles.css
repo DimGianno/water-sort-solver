@@ -419,6 +419,7 @@ label {
 }
 
 .bottle-count-select,
+.known-level-select,
 textarea,
 .ui-select {
   width: 100%;
@@ -432,6 +433,58 @@ textarea,
   min-height: 44px;
   cursor: pointer;
   font-weight: 700;
+}
+.known-level-card {
+  margin-top: 28px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--bd));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+}
+.known-level-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.known-level-select {
+  min-width: 0;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.known-level-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.known-level-status {
+  min-height: 1.5em;
+  margin: 9px 0 0;
+  line-height: 1.5;
+}
+.known-level-status[data-tone="success"] {
+  color: var(--success);
+}
+.known-level-status[data-tone="error"] {
+  color: var(--warning);
+}
+.choice-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 0;
+  color: var(--faint);
+  font:
+    500 9px/1 "DM Mono",
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.choice-divider::before,
+.choice-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--divider);
+  content: "";
 }
 
 .ui-select {

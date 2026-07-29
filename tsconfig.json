@@ -12,6 +12,7 @@
     "target": "ES2022"
   },
   "include": [
+    "api/**/*.ts",
     "assets/js/**/*.ts",
     "tests/**/*.ts",
     "playwright.config.ts",
