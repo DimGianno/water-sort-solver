@@ -21,7 +21,7 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 - **Status:** Ready for review
 - **Summary:** Added a protected, read-only level catalog backed by the existing MongoDB Atlas `chromaflow.levels` collection.
 - **User impact:** Users can select a known solvable level, import it into the existing editable builder, review the bottles, and solve it without copying a puzzle code manually; all existing setup and offline solving paths remain available when the catalog cannot be reached.
-- **Technical impact:** Added a pooled Node.js Vercel Function using the official MongoDB driver, server-only credential handling, strict compact Binary validation and `WS1:` conversion, cacheable safe responses, accessible loading and failure states, and focused API, parser, and cross-browser coverage.
+- **Technical impact:** Added a pooled Node.js Vercel Function using the official MongoDB driver, server-only credential handling, strict compact Binary validation and `WS1:` conversion, cacheable safe responses, accessible loading and failure states, and focused API, parser, and cross-browser coverage; pinned TypeScript 6.0.3 so Vercel's Function builder retains the compiler API it requires.
 - **Related area:** Puzzle onboarding, Vercel API, and MongoDB integration
 
 ### 2026-07-29 - Compact saved-puzzle codec compatibility
