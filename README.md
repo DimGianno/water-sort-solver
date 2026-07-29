@@ -75,9 +75,10 @@ npm run test:all
 
 Core tests use Vitest and run once through `npm test`. During development, use `npm run test:watch` to rerun affected tests as files change. Playwright remains responsible for end-to-end browser coverage.
 
-Run the TypeScript compiler without emitting files:
+Run ESLint and the TypeScript compiler without emitting files:
 
 ```bash
+npm run lint
 npm run typecheck
 ```
 
@@ -93,7 +94,7 @@ Check repository formatting without changing files:
 npm run format:check
 ```
 
-Build, run the core tests, check formatting, and then preview the production bundle:
+Lint, build, run the core tests, check formatting, and then preview the production bundle:
 
 ```bash
 npm run check
@@ -125,6 +126,7 @@ assets/js/offline.ts      Offline installation, readiness, and connectivity UI
 assets/js/validation.ts   Typed input validation
 assets/js/constants.ts    Typed capacity and color definitions
 public/                   Web app manifest and install icon
+eslint.config.js          ESLint flat configuration for TypeScript source and tests
 playwright.config.ts      Typed browser projects and Vite test-server configuration
 vitest.config.ts          Typed core-test configuration
 scripts/build.mjs         Vite production and server-artifact build
@@ -134,7 +136,7 @@ tsconfig.json             Application and core-test TypeScript checking
 
 ## Built with
 
-Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite, plus a Node.js Vercel Function using the official MongoDB driver for read-only known-level access. Shared contracts cover application state, puzzle validation, level loading, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. Vitest runs typed core and API tests, while Playwright provides cross-browser end-to-end coverage.
+Semantic HTML, modern CSS, and framework-free TypeScript modules bundled with Vite, plus a Node.js Vercel Function using the official MongoDB driver for read-only known-level access. Shared contracts cover application state, puzzle validation, level loading, import/export, replay, the A* search engine, and both sides of the Web Worker boundary. ESLint provides static analysis, Vitest runs typed core and API tests, and Playwright provides cross-browser end-to-end coverage.
 
 ## License
 

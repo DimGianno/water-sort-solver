@@ -183,8 +183,6 @@ void ctx.loadKnownLevels();
 el("resetBtn").addEventListener("click", resetAll);
 
 el("numBottles").addEventListener("change", () => {
-  const v = parseInt(el<HTMLSelectElement>("numBottles").value, 10);
-
   const max = ctx.colorMaxAllowed();
   const checked = Array.from(
     el("colorChecklist").querySelectorAll<HTMLInputElement>(
