@@ -158,8 +158,8 @@ function resetAll(): void {
   el<HTMLButtonElement>("solveBtn").disabled = true;
   el("fillToolbar").hidden = true;
   el<HTMLInputElement>("fillModeLayer").checked = true;
-  el<HTMLSelectElement>("knownLevelSelect").value = "";
-  el<HTMLButtonElement>("knownLevelImportBtn").disabled = true;
+  ctx.resetKnownLevelSelection();
+  ctx.closeKnownLevelBrowser();
 
   ctx.hideIO();
   ctx.closeScreenshotImport();
@@ -202,8 +202,20 @@ el("numBottles").addEventListener("change", () => {
   }
 });
 el("importBtn").addEventListener("click", ctx.onImport);
-el("knownLevelSelect").addEventListener("change", ctx.onKnownLevelChange);
+el("knownLevelSearch").addEventListener("input", ctx.onKnownLevelInput);
 el("knownLevelImportBtn").addEventListener("click", ctx.importKnownLevel);
+el("knownLevelBrowseBtn").addEventListener("click", ctx.openKnownLevelBrowser);
+el("knownLevelDialogCloseBtn").addEventListener(
+  "click",
+  ctx.closeKnownLevelBrowser,
+);
+el("knownLevelDialogSearch").addEventListener(
+  "input",
+  ctx.onKnownLevelBrowserInput,
+);
+el("knownLevelResults").addEventListener("click", ctx.onKnownLevelBrowserClick);
+el("knownLevelPrevBtn").addEventListener("click", ctx.showPreviousKnownLevels);
+el("knownLevelNextBtn").addEventListener("click", ctx.showNextKnownLevels);
 el("ioCloseBtn").addEventListener("click", ctx.hideIO);
 el("ioApplyBtn").addEventListener("click", ctx.onIOApply);
 el("screenshotBtn").addEventListener("click", ctx.chooseScreenshot);

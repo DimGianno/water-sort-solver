@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { parseKnownLevels } from "../assets/js/levels.ts";
+import { filterKnownLevels, parseKnownLevels } from "../assets/js/levels.ts";
 
 test("known-level responses are normalized, deduplicated, and sorted", () => {
   expect(
@@ -23,4 +23,17 @@ test("known-level responses require a levels array", () => {
   expect(() => parseKnownLevels({ message: "missing" })).toThrow(
     "Invalid known-level response.",
   );
+});
+
+test("known levels can be filtered locally by a level-number prefix", () => {
+  const levels = [
+    { level: 12, code: "WS1:twelve" },
+    { level: 1205, code: "WS1:twelve-oh-five" },
+    { level: 2120, code: "WS1:twenty-one-twenty" },
+  ];
+
+  expect(filterKnownLevels(levels, "12")).toEqual(levels.slice(0, 2));
+  expect(filterKnownLevels(levels, "Level 1,205")).toEqual([levels[1]]);
+  expect(filterKnownLevels(levels, "unknown")).toEqual([]);
+  expect(filterKnownLevels(levels, "")).toEqual(levels);
 });

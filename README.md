@@ -7,7 +7,7 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 ## Highlights
 
 - Select 4–14 bottles with a bounded native picker and build levels with a fixed capacity of four layers
-- Select a solvable known level from the MongoDB-backed online library and import it into the editable builder
+- Search by level number or browse the MongoDB-backed online library and import a solvable level into the editable builder
 - Try a challenging ready-made puzzle and compare the Fast and Optimal-ish solution tradeoff
 - Choose between layer-first and color-first entry modes
 - Recreate fresh levels or partially solved bottle states in the same editable builder
@@ -38,7 +38,7 @@ Then visit the local URL shown by Vite (normally `http://localhost:5173`). The b
 
 ## Connect the known-level library
 
-Chromaflow reads known levels through the same-origin `/api/levels` Vercel Function. The function connects to the `chromaflow` database and `levels` collection, returns only records marked `solvable: true`, and converts each generic MongoDB Binary puzzle into the existing `WS1:` import format. MongoDB credentials never enter the browser bundle.
+Chromaflow reads known levels through the same-origin `/api/levels` Vercel Function. The function connects to the `chromaflow` database and `levels` collection, returns the complete sorted catalog of records marked `solvable: true`, and converts each generic MongoDB Binary puzzle into the existing `WS1:` import format. MongoDB credentials never enter the browser bundle. The browser downloads this compact catalog once, supports exact level-number lookup and local prefix filtering, and renders browse results in 50-level pages instead of creating one control per stored level.
 
 Create a dedicated Atlas database user with read-only access to `chromaflow.levels`, then add its connection string to the Vercel project as a sensitive environment variable named `MONGODB_URI`. Configure it for the environments that need the library—normally Production and Preview—and redeploy after adding or changing the value. Atlas Network Access must also allow connections from the Vercel deployment.
 
@@ -86,7 +86,7 @@ Playwright starts and stops its dedicated test server automatically on `http://1
 
 GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
 
-The suites cover fresh and in-progress puzzle validation, offline screenshot recognition at multiple resolutions, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
+The suites cover fresh and in-progress puzzle validation, searchable known-level browsing, offline screenshot recognition at multiple resolutions, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
 
@@ -104,7 +104,7 @@ The preview remains available at `http://127.0.0.1:4173` until the command is st
 
 ## How it works
 
-Puzzle states are encoded as ordered bottle contents. The known-level endpoint reads solvable MongoDB documents on the server, validates the version-one compact Binary shape, and returns browser-safe level numbers and `WS1:` codes. The selected code then follows the same import and validation path as a pasted saved puzzle. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
+Puzzle states are encoded as ordered bottle contents. The known-level endpoint reads solvable MongoDB documents on the server, validates the version-one compact Binary shape, and returns browser-safe level numbers and `WS1:` codes. The browser indexes that response by level number, filters the catalog locally when users browse, and keeps the rendered result set bounded. The selected code then follows the same import and validation path as a pasted saved puzzle. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
 
 ## Project structure
 

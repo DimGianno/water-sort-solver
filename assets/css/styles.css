@@ -419,7 +419,8 @@ label {
 }
 
 .bottle-count-select,
-.known-level-select,
+.known-level-search,
+.known-level-dialog-search,
 textarea,
 .ui-select {
   width: 100%;
@@ -446,15 +447,17 @@ textarea,
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
-.known-level-select {
+.known-level-search {
   min-width: 0;
   min-height: 44px;
-  cursor: pointer;
   font-weight: 700;
 }
-.known-level-select:disabled {
+.known-level-search:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+.known-level-browse-btn {
+  margin-top: 10px;
 }
 .known-level-status {
   min-height: 1.5em;
@@ -466,6 +469,71 @@ textarea,
 }
 .known-level-status[data-tone="error"] {
   color: var(--warning);
+}
+.known-level-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-height: min(760px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  color: var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.known-level-dialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 52%, transparent);
+}
+.known-level-dialog-content {
+  padding: 24px;
+}
+.known-level-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+.known-level-dialog-heading h2 {
+  margin: 4px 0 0;
+}
+.known-level-dialog-search {
+  min-height: 46px;
+  margin-top: 8px;
+  font-weight: 700;
+}
+.known-level-result-count {
+  min-height: 1.5em;
+  margin: 12px 0 8px;
+}
+.known-level-results {
+  max-height: 390px;
+  padding: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--divider);
+  list-style: none;
+}
+.known-level-result {
+  width: 100%;
+  min-height: 48px;
+  padding-inline: 4px;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+.known-level-result:hover:not(:disabled) {
+  background: var(--btn-hover);
+  transform: none;
+}
+.known-level-pagination {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  text-align: center;
 }
 .choice-divider {
   display: flex;
@@ -1230,6 +1298,9 @@ footer p {
   }
   .setup-panel .hint {
     display: none;
+  }
+  .known-level-dialog-content {
+    padding: 18px;
   }
   .field-group {
     margin-top: 20px;

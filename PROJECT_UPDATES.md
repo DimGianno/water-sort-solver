@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-29 - Searchable large level library
+
+- **Type:** Improvement
+- **Status:** Ready for review
+- **Summary:** Replaced the known-level dropdown with exact level-number search and a scalable browser for the complete MongoDB catalog.
+- **User impact:** Users can import a known level directly by number or browse tens of thousands of levels without navigating an oversized native dropdown; the browser supports local prefix filtering and clear 50-result pages.
+- **Technical impact:** Removed the 1,000-record database query cap, indexed the downloaded compact catalog by level number in browser memory, limited rendered dialog results to one page, preserved the existing validated puzzle-code import path and unavailable-library fallback, and added focused unit and cross-browser coverage.
+- **Related area:** Puzzle onboarding, catalog scalability, and MongoDB integration
+
 ### 2026-07-29 - ESLint static analysis
 
 - **Type:** Quality
@@ -189,7 +198,7 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 ## Current Capabilities
 
 - Configure fresh or in-progress puzzles with 4 to 14 fully editable bottles.
-- Load solvable known levels from MongoDB through a protected, read-only Vercel endpoint.
+- Search or browse solvable known levels from MongoDB through a protected, read-only Vercel endpoint.
 - Select the exact number of colors required by the chosen bottle count.
 - Enter bottle contents with layer-first automatic advancement or color-first painting.
 - Load, solve, and reveal a curated sample puzzle with one action.
@@ -210,6 +219,7 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 - Incrementally typed, framework-free module architecture separating builder, validation, search, replay, and import/export responsibilities.
 - Server-only MongoDB access with compact Binary validation, safe response projection, and reuse of the existing browser import boundary.
+- Scalable client-side known-level discovery with exact lookup, prefix filtering, and bounded result rendering.
 - Typed A* state-space search with heuristics, move ordering, deduplication, and redundant-move pruning.
 - Responsive Web Worker execution with progress events, cancellation, and stale-result protection.
 - Content-versioned offline delivery that keeps the application shell and solver worker on the same release.
