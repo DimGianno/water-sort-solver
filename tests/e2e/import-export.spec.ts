@@ -15,8 +15,9 @@ test("a compact puzzle exported through the UI can be reset and imported", async
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
       value: {
-        async writeText(value: string) {
+        writeText(value: string) {
           window.__copiedPuzzle = value;
+          return Promise.resolve();
         },
       },
     });

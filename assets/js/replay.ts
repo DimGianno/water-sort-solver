@@ -78,7 +78,7 @@ export function createReplay(ctx: ReplayContext) {
       stack.className = "rstack";
 
       const topToBottom = st[i].slice().reverse();
-      const padded = Array(CAP - topToBottom.length)
+      const padded = Array<string>(CAP - topToBottom.length)
         .fill("")
         .concat(topToBottom);
 

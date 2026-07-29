@@ -334,9 +334,14 @@ export function recognizeScreenshotPixels(
 async function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(String(reader.result)), {
-      once: true,
-    });
+    reader.addEventListener(
+      "load",
+      () => {
+        if (typeof reader.result === "string") resolve(reader.result);
+        else reject(new Error("The selected image could not be opened."));
+      },
+      { once: true },
+    );
     reader.addEventListener(
       "error",
       () => reject(new Error("The selected image could not be opened.")),

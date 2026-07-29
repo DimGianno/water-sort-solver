@@ -56,12 +56,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function isUnknownArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
 function getErrorMessage(error: unknown): string {
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    if (message) return String(message);
-  }
-  return String(error);
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "Unknown error.";
 }
 
 export function createImportExport(ctx: ImportExportContext) {
@@ -282,21 +284,25 @@ export function createImportExport(ctx: ImportExportContext) {
         `Import must include exactly ${max} colors for ${n} bottles.`,
       );
 
-    if (!Array.isArray(obj.layers) || obj.layers.length !== n)
+    if (!isUnknownArray(obj.layers) || obj.layers.length !== n)
       throw new Error("Invalid layers in payload.");
 
     const cleanLayers: string[][] = [];
     for (let b = 0; b < n; b++) {
       const row = obj.layers[b];
-      if (!Array.isArray(row) || row.length !== CAP) {
+      if (!isUnknownArray(row) || row.length !== CAP) {
         throw new Error("Invalid layers in payload.");
       }
       const cleanRow: string[] = [];
       for (let l = 0; l < CAP; l++) {
-        const v: unknown = row[l] || "";
-        if (typeof v !== "string" || (v !== "" && !want.includes(v)))
-          throw new Error(`Invalid layer color "${v}" in payload.`);
-        cleanRow.push(v);
+        const value = row[l] || "";
+        if (typeof value !== "string") {
+          throw new Error("Invalid layer color in payload.");
+        }
+        if (value !== "" && !want.includes(value)) {
+          throw new Error(`Invalid layer color "${value}" in payload.`);
+        }
+        cleanRow.push(value);
       }
       cleanLayers.push(cleanRow);
     }

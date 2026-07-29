@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-29 - ESLint static analysis
+
+- **Type:** Quality
+- **Status:** Ready for review
+- **Summary:** Added project-wide, type-aware TypeScript linting with ESLint's flat configuration.
+- **User impact:** Runtime behavior remains unchanged while contributors receive an additional automated check for common code-quality issues.
+- **Technical impact:** Added ESLint, the official JavaScript rules, and TypeScript ESLint as development dependencies; enabled the recommended type-checked rules through the TypeScript project service; introduced a dedicated lint command in the unified quality workflow; and strengthened promise, unknown-data, browser-file, array, and test-fixture boundaries identified by the initial typed run.
+- **Related area:** Testing and developer experience
+
 ### 2026-07-29 - MongoDB known-level library
 
 - **Type:** Capability

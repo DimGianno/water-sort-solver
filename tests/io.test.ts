@@ -34,6 +34,10 @@ function encodeBytes(bytes: Uint8Array): string {
   return `WS1:${btoa(binary)}`;
 }
 
+function filledBottle(color = ""): string[] {
+  return Array<string>(CAP).fill(color);
+}
+
 function encodeCompactPuzzle(
   layers: string[][],
   version = 1,
@@ -152,8 +156,9 @@ test("compact exported puzzle codes are copied and round-trip through the import
     const copied: string[] = [];
     const { checkboxes, elements, io, originalLayers, state } = createFixture({
       clipboard: {
-        writeText: async (value) => {
+        writeText: (value) => {
           copied.push(value);
+          return Promise.resolve();
         },
       },
     });
@@ -193,7 +198,7 @@ test("compact exported puzzle codes are copied and round-trip through the import
 
 test("exports the stored five-bottle puzzle with the reference compact encoding", async () => {
   const { elements, io, state } = createFixture({
-    clipboard: { writeText: async () => undefined },
+    clipboard: { writeText: () => Promise.resolve() },
   });
   elements.numBottles.value = "5";
   state.bottleLayers = [
@@ -211,13 +216,13 @@ test("exports the stored five-bottle puzzle with the reference compact encoding"
 
 test("exports a 14-bottle puzzle as a 29-byte compact payload", async () => {
   const { elements, io, state } = createFixture({
-    clipboard: { writeText: async () => undefined },
+    clipboard: { writeText: () => Promise.resolve() },
   });
   elements.numBottles.value = "14";
   state.bottleLayers = [
-    ...COMPACT_COLOR_NAMES.map((color) => Array(CAP).fill(color)),
-    Array(CAP).fill(""),
-    Array(CAP).fill(""),
+    ...COMPACT_COLOR_NAMES.map(filledBottle),
+    filledBottle(),
+    filledBottle(),
   ];
 
   await io.onExport();
@@ -280,10 +285,10 @@ describe("compact puzzle imports", () => {
 
   test("preserves empty helper bottles", () => {
     const layers = [
-      Array(CAP).fill("Red"),
-      Array(CAP).fill("Blue"),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      filledBottle("Red"),
+      filledBottle("Blue"),
+      filledBottle(),
+      filledBottle(),
     ];
     const { code } = encodeCompactPuzzle(layers);
     const { elements, io, state } = createFixture();
@@ -304,9 +309,9 @@ describe("compact puzzle imports", () => {
   test("imports an 11-bottle compact puzzle", () => {
     const colors = COMPACT_COLOR_NAMES.slice(0, 9);
     const layers = [
-      ...colors.map((color) => Array(CAP).fill(color)),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      ...colors.map(filledBottle),
+      filledBottle(),
+      filledBottle(),
     ];
     const { bytes, code } = encodeCompactPuzzle(layers);
     const { checkboxes, elements, io, state } = createFixture();
@@ -325,9 +330,9 @@ describe("compact puzzle imports", () => {
 
   test("imports a 14-bottle, 29-byte compact puzzle", () => {
     const layers = [
-      ...COMPACT_COLOR_NAMES.map((color) => Array(CAP).fill(color)),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      ...COMPACT_COLOR_NAMES.map(filledBottle),
+      filledBottle(),
+      filledBottle(),
     ];
     const { bytes, code } = encodeCompactPuzzle(layers);
     const { checkboxes, elements, io, state } = createFixture();
@@ -418,10 +423,10 @@ describe("import reports invalid codes without changing the puzzle", () => {
 
   test("rejects an unsupported compact version without changing the puzzle", () => {
     const layers = [
-      Array(CAP).fill("Red"),
-      Array(CAP).fill("Blue"),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      filledBottle("Red"),
+      filledBottle("Blue"),
+      filledBottle(),
+      filledBottle(),
     ];
     const { code } = encodeCompactPuzzle(layers, 2);
     const { calls, elements, io, originalLayers, state } = createFixture();
@@ -455,10 +460,10 @@ describe("import reports invalid codes without changing the puzzle", () => {
 
   test("rejects an invalid compact length without changing the puzzle", () => {
     const layers = [
-      Array(CAP).fill("Red"),
-      Array(CAP).fill("Blue"),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      filledBottle("Red"),
+      filledBottle("Blue"),
+      filledBottle(),
+      filledBottle(),
     ];
     const { bytes } = encodeCompactPuzzle(layers);
     const { calls, elements, io, originalLayers, state } = createFixture();
@@ -476,10 +481,10 @@ describe("import reports invalid codes without changing the puzzle", () => {
 
   test("rejects an invalid compact color code without changing the puzzle", () => {
     const layers = [
-      Array(CAP).fill("Red"),
-      Array(CAP).fill("Blue"),
-      Array(CAP).fill(""),
-      Array(CAP).fill(""),
+      filledBottle("Red"),
+      filledBottle("Blue"),
+      filledBottle(),
+      filledBottle(),
     ];
     const { bytes } = encodeCompactPuzzle(layers);
     bytes[1] = 0xd1;
@@ -503,7 +508,7 @@ describe("import reports invalid codes without changing the puzzle", () => {
       v: 1,
       n: 4,
       colors: ["Red", "Blue", "Green"],
-      layers: Array.from({ length: 4 }, () => Array(CAP).fill("")),
+      layers: Array.from({ length: 4 }, () => filledBottle()),
     });
 
     io.onIOApply();

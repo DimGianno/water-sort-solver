@@ -55,20 +55,17 @@ function syntheticScreenshotMarkup(): string {
 
 test("a screenshot is recognized locally and applied to the editable builder", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.setViewportSize({ width: 480, height: 1042 });
   await page.setContent(syntheticScreenshotMarkup());
-  const screenshot = await page.screenshot({ type: "png" });
+  const screenshotPath = testInfo.outputPath("water-sort-level.png");
+  await page.screenshot({ path: screenshotPath, type: "png" });
 
   await page.goto("/");
   await expect(
     page.getByRole("button", { name: "Import from a screenshot" }),
   ).toBeVisible();
-  await page.locator("#screenshotInput").setInputFiles({
-    name: "water-sort-level.png",
-    mimeType: "image/png",
-    buffer: screenshot,
-  });
+  await page.locator("#screenshotInput").setInputFiles(screenshotPath);
 
   await expect(page.locator("#screenshotMsg")).toHaveText(
     "Detected 11 bottles and 9 colors. Apply the result, then review every layer.",

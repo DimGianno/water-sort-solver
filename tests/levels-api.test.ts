@@ -49,9 +49,9 @@ describe("MongoDB known-level documents", () => {
 describe("known-level API handler", () => {
   test("returns a cacheable level catalog for GET requests", async () => {
     const levels = [{ level: 6, code: `WS1:${LEVEL_SIX_BASE64}` }];
-    const response = await createLevelsHandler(async () => levels).fetch(
-      new Request("https://example.test/api/levels"),
-    );
+    const response = await createLevelsHandler(() =>
+      Promise.resolve(levels),
+    ).fetch(new Request("https://example.test/api/levels"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("max-age=60");
@@ -73,9 +73,9 @@ describe("known-level API handler", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
-    const response = await createLevelsHandler(async () => {
-      throw new Error("connection details");
-    }).fetch(new Request("https://example.test/api/levels"));
+    const response = await createLevelsHandler(() =>
+      Promise.reject(new Error("connection details")),
+    ).fetch(new Request("https://example.test/api/levels"));
 
     expect(response.status).toBe(503);
     expect(response.headers.get("cache-control")).toBe("no-store");
