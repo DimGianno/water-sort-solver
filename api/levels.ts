@@ -11,7 +11,6 @@ declare const process: {
 
 const DATABASE_NAME = "chromaflow";
 const COLLECTION_NAME = "levels";
-const MAX_LEVELS = 1_000;
 const MIN_BOTTLES = 4;
 const MAX_BOTTLES = 14;
 const COMPACT_CODEC_VERSION = 1;
@@ -136,7 +135,6 @@ async function loadKnownLevels(): Promise<KnownLevel[]> {
       },
     )
     .sort({ level: 1, updated_at: -1 })
-    .limit(MAX_LEVELS)
     .toArray();
 
   return formatLevelDocuments(documents);

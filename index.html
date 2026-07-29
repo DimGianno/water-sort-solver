@@ -94,18 +94,20 @@
 
           <div class="known-level-card">
             <div class="field-label-row">
-              <label for="knownLevelSelect">Known level</label>
+              <label for="knownLevelSearch">Known level</label>
               <span>Online library</span>
             </div>
             <div class="known-level-actions">
-              <select
-                id="knownLevelSelect"
-                class="known-level-select"
+              <input
+                id="knownLevelSearch"
+                class="known-level-search"
+                type="search"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="Level number"
                 aria-describedby="knownLevelStatus"
                 disabled
-              >
-                <option value="">Loading levels...</option>
-              </select>
+              />
               <button
                 id="knownLevelImportBtn"
                 class="secondary-btn"
@@ -115,6 +117,16 @@
                 Import
               </button>
             </div>
+            <button
+              id="knownLevelBrowseBtn"
+              class="text-btn known-level-browse-btn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="knownLevelDialog"
+              disabled
+            >
+              Browse all levels
+            </button>
             <p
               id="knownLevelStatus"
               class="small known-level-status"
@@ -457,6 +469,57 @@
         </article>
       </section>
     </main>
+
+    <dialog
+      id="knownLevelDialog"
+      class="known-level-dialog"
+      aria-labelledby="knownLevelDialogTitle"
+    >
+      <div class="known-level-dialog-content">
+        <div class="known-level-dialog-heading">
+          <div>
+            <p class="kicker">Online library</p>
+            <h2 id="knownLevelDialogTitle">Browse known levels</h2>
+          </div>
+          <button
+            id="knownLevelDialogCloseBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+        <label for="knownLevelDialogSearch">Search by level number</label>
+        <input
+          id="knownLevelDialogSearch"
+          class="known-level-dialog-search"
+          type="search"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="For example, 12840"
+        />
+        <p
+          id="knownLevelResultCount"
+          class="small known-level-result-count"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <ul
+          id="knownLevelResults"
+          class="known-level-results"
+          aria-label="Known levels"
+        ></ul>
+        <div class="known-level-pagination">
+          <button id="knownLevelPrevBtn" class="secondary-btn" type="button">
+            Previous
+          </button>
+          <span id="knownLevelPage" class="small"></span>
+          <button id="knownLevelNextBtn" class="secondary-btn" type="button">
+            Next
+          </button>
+        </div>
+      </div>
+    </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
