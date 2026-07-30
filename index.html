@@ -197,7 +197,7 @@
             <span aria-hidden="true">↓</span> Import a saved puzzle
           </button>
           <div id="ioArea" class="io-area" hidden>
-            <label for="ioText">Puzzle code</label>
+            <label id="ioLabel" for="ioText">Puzzle code</label>
             <textarea
               id="ioText"
               placeholder="Paste a Chromaflow export code here"
@@ -271,9 +271,14 @@
                   <h2 id="editor-title">Build the puzzle</h2>
                 </div>
               </div>
-              <button id="exportBtn" class="secondary-btn" type="button">
-                Export puzzle <span aria-hidden="true">↑</span>
-              </button>
+              <div class="editor-actions">
+                <button id="shareBtn" class="secondary-btn" type="button">
+                  Share puzzle <span aria-hidden="true">↗</span>
+                </button>
+                <button id="exportBtn" class="secondary-btn" type="button">
+                  Export puzzle <span aria-hidden="true">↑</span>
+                </button>
+              </div>
             </div>
             <p class="section-intro">
               Enter each bottle from top to bottom. Leave empty spaces above the
