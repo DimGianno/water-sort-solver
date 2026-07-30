@@ -6,6 +6,7 @@ import { createImportExport } from "../assets/js/io.ts";
 interface FixtureOptions {
   clipboard?: { writeText: (value: string) => Promise<void> };
   copyCommand?: (command: string) => boolean;
+  validationError?: string | null;
 }
 
 const COMPACT_COLOR_NAMES = [
@@ -94,6 +95,7 @@ function createFixture(options: FixtureOptions = {}) {
       },
     },
     ioArea: { hidden: true },
+    ioLabel: { textContent: "Puzzle code" },
     ioMsg: { textContent: "" },
     ioText: {
       value: "",
@@ -141,8 +143,11 @@ function createFixture(options: FixtureOptions = {}) {
     renderPalette: () => calls.push(["palette"]),
     runContinuousValidation: () => calls.push(["validation"]),
     updateSolveEnabled: () => calls.push(["solve-enabled"]),
+    validateCurrentInput: () => options.validationError ?? null,
     clipboard: options.clipboard,
     copyCommand: options.copyCommand,
+    currentUrl: () => "https://chromaflow.example/solver?theme=dark#editor",
+    showSuccess: (message: string) => calls.push(["success", message]),
   } as unknown as Parameters<typeof createImportExport>[0]);
 
   return { calls, checkboxes, elements, io, originalLayers, state };
@@ -230,6 +235,93 @@ test("exports a 14-bottle puzzle as a 29-byte compact payload", async () => {
   const binary = atob(elements.ioText.value.slice(4));
   expect(binary).toHaveLength(29);
   expect(binary.charCodeAt(0)).toBe(0x1e);
+});
+
+describe("shared puzzle URLs", () => {
+  test("copies a compact URL-safe puzzle link while preserving other query parameters", async () => {
+    const copied: string[] = [];
+    const { elements, io } = createFixture({
+      clipboard: {
+        writeText: (value) => {
+          copied.push(value);
+          return Promise.resolve();
+        },
+      },
+    });
+
+    await io.onShare();
+
+    const shareUrl = new URL(elements.ioText.value);
+    expect(shareUrl.origin + shareUrl.pathname).toBe(
+      "https://chromaflow.example/solver",
+    );
+    expect(shareUrl.searchParams.get("theme")).toBe("dark");
+    expect(shareUrl.searchParams.get("p")).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(shareUrl.hash).toBe("");
+    expect(copied).toEqual([shareUrl.toString()]);
+    expect(elements.ioLabel.textContent).toBe("Share URL");
+    expect(elements.ioMsg.textContent).toBe("Share URL copied to clipboard.");
+  });
+
+  test("restores a valid shared puzzle through the existing import path", () => {
+    const { calls, io, originalLayers, state } = createFixture();
+    state.bottleLayers = [];
+    const code = encodeCompactPuzzle(originalLayers).code;
+    const payload = code
+      .slice(4)
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
+
+    withCssEscape(() => {
+      expect(
+        io.importSharedPuzzle(`https://chromaflow.example/?p=${payload}`),
+      ).toBe(true);
+    });
+
+    expect(state.bottleLayers).toEqual(originalLayers);
+    expect(calls).toContainEqual([
+      "success",
+      "Shared puzzle loaded. Review it, then solve.",
+    ]);
+  });
+
+  test("rejects an invalid link without changing the puzzle", () => {
+    const { calls, io, originalLayers, state } = createFixture();
+
+    expect(
+      io.importSharedPuzzle("https://chromaflow.example/?p=not!safe"),
+    ).toBe(true);
+
+    expect(state.bottleLayers).toEqual(originalLayers);
+    expect(calls).toContainEqual([
+      "error",
+      "Invalid shared puzzle link: Invalid shared puzzle payload.",
+    ]);
+  });
+
+  test("does not share a puzzle that fails current validation", async () => {
+    const copied: string[] = [];
+    const { calls, elements, io } = createFixture({
+      clipboard: {
+        writeText: (value) => {
+          copied.push(value);
+          return Promise.resolve();
+        },
+      },
+      validationError:
+        'Color "Red" appears 3 times, but must appear exactly 4 times.',
+    });
+
+    await io.onShare();
+
+    expect(copied).toEqual([]);
+    expect(elements.ioArea.hidden).toBe(true);
+    expect(calls).toContainEqual([
+      "error",
+      'Cannot share this puzzle: Color "Red" appears 3 times, but must appear exactly 4 times.',
+    ]);
+  });
 });
 
 test("continues importing legacy JSON saved-puzzle strings", () => {

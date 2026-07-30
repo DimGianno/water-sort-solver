@@ -19,7 +19,8 @@ Chromaflow is a browser-based Water Sort puzzle solver that turns a manually rec
 - Follow expanded-state progress and cancel long searches safely
 - Review a concise move list or include the full state after each move
 - Replay solutions step by step with adjustable playback speed and restart a completed replay in one click
-- Import and export puzzle configurations with a compact shareable code that copies automatically
+- Share or bookmark a valid configured puzzle through a compact URL that restores it automatically
+- Import and export puzzle configurations with a compact saved code that copies automatically
 - Reload and solve after losing connectivity once the production application reports that offline access is ready
 - Install Chromaflow as a standalone application in browsers that support web app installation
 - Switch between light and dark themes
@@ -56,6 +57,12 @@ Choose **Import from a screenshot**, select a JPEG, PNG, or WebP image, and wait
 
 The first recognition profile supports screenshots from Water Sort Puzzle on the [App Store](https://apps.apple.com/app/water-sort-puzzle/id1514542157) and [Google Play](https://play.google.com/store/apps/details?id=com.gma.water.sort.puzzle), based on its straight, light-outlined bottle style and the included calibrated iPhone screenshots. Chromaflow is an independent solver and is not affiliated with the game or its developer. Screen resolution may vary because bottle geometry is measured proportionally after the image is normalized. After applying the result, review every editable layer before solving. Screenshots from games with substantially different bottle artwork or liquid colors may still require manual entry.
 
+## Share a puzzle
+
+Build a valid puzzle, then choose **Share puzzle**. Chromaflow copies a URL containing the exact editable bottle state; opening or bookmarking that URL restores the puzzle automatically. If clipboard access is unavailable, the URL remains selected for manual copying. Invalid shared links show an error and do not partially change the builder.
+
+Shared links use the `p` query parameter with the same compact puzzle data as saved codes, converted to unpadded Base64URL. The supported 4–14 bottle range produces 9–29 binary bytes and a 12–39 character `p` value. The complete URL length also depends on the deployment address and any other preserved query parameters.
+
 ## Test
 
 Install the development dependencies and browser engines once:
@@ -86,7 +93,7 @@ Playwright starts and stops its dedicated test server automatically on `http://1
 
 GitHub Actions runs the complete test suite for every pushed branch and for pull requests.
 
-The suites cover fresh and in-progress puzzle validation, searchable known-level browsing, offline screenshot recognition at multiple resolutions, import/export handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
+The suites cover fresh and in-progress puzzle validation, searchable known-level browsing, offline screenshot recognition at multiple resolutions, import/export and shared-URL handling, solver outcomes, sample onboarding, both fill modes, bulk clearing, replay controls, theme switching, and responsive desktop and mobile layouts. Browser tests run in Chromium, Firefox, and WebKit profiles.
 
 Check repository formatting without changing files:
 
@@ -104,7 +111,7 @@ The preview remains available at `http://127.0.0.1:4173` until the command is st
 
 ## How it works
 
-Puzzle states are encoded as ordered bottle contents. The known-level endpoint reads solvable MongoDB documents on the server, validates the version-one compact Binary shape, and returns browser-safe level numbers and `WS1:` codes. The browser indexes that response by level number, filters the catalog locally when users browse, and keeps the rendered result set bounded. The selected code then follows the same import and validation path as a pasted saved puzzle. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
+Puzzle states are encoded as ordered bottle contents. The known-level endpoint reads solvable MongoDB documents on the server, validates the version-one compact Binary shape, and returns browser-safe level numbers and `WS1:` codes. The browser indexes that response by level number, filters the catalog locally when users browse, and keeps the rendered result set bounded. Selected known levels, pasted saved codes, and Base64URL state from the `p` query parameter all converge on the same atomic import and validation path. Validation accepts full, partial, and empty bottles anywhere in the level while requiring gapless liquid layers and exactly four pieces of every selected color. A module Web Worker runs the A* search with mode-specific heuristics, move scoring, state deduplication, and pruning for redundant pours. The worker reports expanded-state progress and can be terminated immediately without blocking the interface. Once a solution is found, every intermediate state is retained for the interactive replay.
 
 ## Project structure
 
@@ -121,7 +128,7 @@ assets/js/solver-core.ts  Typed A* search implementation
 assets/js/solver-types.ts Shared puzzle, result, and worker message types
 assets/js/solver-worker.ts Background search worker and typed message boundary
 assets/js/replay.ts       Typed step-by-step solution replay
-assets/js/io.ts           Typed puzzle import and export
+assets/js/io.ts           Typed puzzle import, export, and shared-URL handling
 assets/js/offline.ts      Offline installation, readiness, and connectivity UI
 assets/js/validation.ts   Typed input validation
 assets/js/constants.ts    Typed capacity and color definitions

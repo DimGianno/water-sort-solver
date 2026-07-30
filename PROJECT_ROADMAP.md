@@ -4,7 +4,7 @@
 
 - **Project maturity:** Portfolio-ready
 - **Actively developed:** Yes
-- **Last reviewed:** 2026-07-29
+- **Last reviewed:** 2026-07-30
 
 ## Known Limitations
 
@@ -40,15 +40,7 @@
 
 ## Next Features
 
-### Share puzzles through URLs
-
-- **Priority:** Low
-- **Status:** Idea
-- **Value:** Lets users share or bookmark a configured level without copying an export code manually.
-- **Scope:** Encode a validated puzzle in the URL and restore it on page load with clear invalid-link handling.
-- **Dependencies:** A compact URL-safe encoding and documented size limits
-- **Complexity:** Medium
-- **Portfolio relevance:** Demonstrates addressable application state and resilient client-side parsing.
+No confirmed features are currently queued.
 
 ## Development Milestones
 
@@ -64,3 +56,7 @@
    - Goal: Reduce the time between opening Chromaflow and seeing a solution.
    - Included work: One-click curated sample, MongoDB-backed exact level search and paginated catalog browsing, plus offline screenshot-assisted entry with resolution-independent geometry, calibrated colors, strict validation, and editable recognition results.
    - Completion criteria: New visitors can run a sample immediately, search or browse a stored solvable level when online, and turn supported fresh or in-progress screenshots into a reviewable puzzle state before solving.
+4. **Share configured puzzles — Ready for review**
+   - Goal: Let users send or bookmark an exact editable puzzle without manually copying an export code.
+   - Included work: Validated one-click URL generation, compact Base64URL state, automatic page-load restoration, clipboard fallback guidance, and clear invalid-link handling.
+   - Completion criteria: Every valid 4–14 bottle puzzle produces a URL-safe payload of at most 39 characters, opens through the existing atomic import path, and leaves the builder unchanged when a malformed link is rejected.

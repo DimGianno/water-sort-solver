@@ -88,3 +88,42 @@ test("a compact saved-puzzle code fills the builder in top-to-bottom order", asy
     page.getByRole("button", { name: /Solve puzzle/ }),
   ).toBeEnabled();
 });
+
+test("a shared puzzle URL restores the builder and rejects invalid links safely", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText(value: string) {
+          (window as Window & { __copiedPuzzle?: string }).__copiedPuzzle =
+            value;
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+  await page.goto("/");
+  await openFourBottleBuilder(page);
+  await fillSolvablePuzzle(page);
+  await page.getByRole("button", { name: /Share puzzle/ }).click();
+
+  const shareUrl = await page.getByLabel("Share URL").inputValue();
+  expect(new URL(shareUrl).searchParams.get("p")).toMatch(/^[A-Za-z0-9_-]+$/);
+
+  await page.goto(shareUrl);
+  await expect(page.locator("#success")).toHaveText(
+    "Shared puzzle loaded. Review it, then solve.",
+  );
+  await expect(page.locator(".bottle")).toHaveCount(4);
+  await expect(
+    page.getByRole("button", { name: /Solve puzzle/ }),
+  ).toBeEnabled();
+
+  await page.goto("/?p=not!safe");
+  await expect(page.locator("#error")).toHaveText(
+    "Invalid shared puzzle link: Invalid shared puzzle payload.",
+  );
+  await expect(page.locator(".bottle")).toHaveCount(0);
+});

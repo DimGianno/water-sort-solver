@@ -6,6 +6,7 @@ interface ImportExportContext {
   state: AppState;
   el: ElementLookup;
   showError: (message: string) => void;
+  showSuccess: (message: string) => void;
   selectedColors: () => string[];
   updateSelectAllVisibility: () => void;
   updateColorLimitUI: () => void;
@@ -15,8 +16,10 @@ interface ImportExportContext {
   renderPalette: () => void;
   runContinuousValidation: () => void;
   updateSolveEnabled: () => void;
+  validateCurrentInput: () => string | null;
   clipboard?: Pick<Clipboard, "writeText">;
   copyCommand?: (command: string) => boolean;
+  currentUrl?: () => string;
 }
 
 interface ExportPayload {
@@ -37,6 +40,7 @@ type ToastTone = "success" | "warning";
 const COMPACT_CODEC_VERSION = 1;
 const MIN_BOTTLES = 4;
 const MAX_BOTTLES = 14;
+const SHARE_PARAM = "p";
 const COMPACT_COLOR_NAMES = [
   "Red",
   "Pink",
@@ -254,11 +258,12 @@ export function createImportExport(ctx: ImportExportContext) {
     return decodeCompactImport(bytes);
   }
 
-  function showIO(mode: "export" | "import"): void {
+  function showIO(mode: "export" | "import" | "share"): void {
     el("ioArea").hidden = false;
     el("ioMsg").textContent = "";
     el<HTMLTextAreaElement>("ioText").value = "";
     el("ioApplyBtn").dataset.mode = mode;
+    el("ioLabel").textContent = mode === "share" ? "Share URL" : "Puzzle code";
   }
 
   function hideIO(): void {
@@ -345,17 +350,17 @@ export function createImportExport(ctx: ImportExportContext) {
     applyImport(decodeImport(code));
   }
 
-  async function copyExportCode(code: string): Promise<boolean> {
+  async function copyText(text: string): Promise<boolean> {
     try {
       const clipboard = ctx.clipboard ?? globalThis.navigator?.clipboard;
       if (!clipboard?.writeText) throw new Error("Clipboard API unavailable.");
-      await clipboard.writeText(code);
+      await clipboard.writeText(text);
       return true;
     } catch {
       const textArea = el<HTMLTextAreaElement>("ioText");
       textArea.focus?.();
       textArea.select?.();
-      textArea.setSelectionRange?.(0, code.length);
+      textArea.setSelectionRange?.(0, text.length);
       try {
         const copyCommand =
           ctx.copyCommand ??
@@ -373,7 +378,7 @@ export function createImportExport(ctx: ImportExportContext) {
     const code = encodeExport(payload);
     showIO("export");
     el<HTMLTextAreaElement>("ioText").value = code;
-    const copied = await copyExportCode(code);
+    const copied = await copyText(code);
     if (copied) {
       el("ioMsg").textContent = "Export copied to clipboard.";
       showToast("Puzzle copied to clipboard");
@@ -390,10 +395,77 @@ export function createImportExport(ctx: ImportExportContext) {
     el("ioMsg").textContent = "Paste code and press Apply.";
   }
 
+  function toBase64Url(code: string): string {
+    return code
+      .slice(4)
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
+  }
+
+  function fromBase64Url(payload: string): string {
+    if (!payload || !/^[A-Za-z0-9_-]+$/.test(payload)) {
+      throw new Error("Invalid shared puzzle payload.");
+    }
+    const base64 = payload.replaceAll("-", "+").replaceAll("_", "/");
+    const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+    return `WS1:${base64}${padding}`;
+  }
+
+  function createShareUrl(): string {
+    const code = encodeExport(toExportPayload());
+    const currentUrl = ctx.currentUrl?.() ?? globalThis.location.href;
+    const url = new URL(currentUrl);
+    url.searchParams.set(SHARE_PARAM, toBase64Url(code));
+    url.hash = "";
+    return url.toString();
+  }
+
+  async function onShare(): Promise<void> {
+    if (!state.bottleLayers.length) {
+      showError("Build bottles UI first.");
+      return;
+    }
+    const validationError = ctx.validateCurrentInput();
+    if (validationError) {
+      showError(`Cannot share this puzzle: ${validationError}`);
+      return;
+    }
+
+    const shareUrl = createShareUrl();
+    showIO("share");
+    el<HTMLTextAreaElement>("ioText").value = shareUrl;
+    const copied = await copyText(shareUrl);
+    if (copied) {
+      el("ioMsg").textContent = "Share URL copied to clipboard.";
+      showToast("Share URL copied to clipboard");
+    } else {
+      el("ioMsg").textContent =
+        "Automatic copy failed. Copy the selected URL manually.";
+      showToast("Could not copy automatically", "warning");
+    }
+  }
+
+  function importSharedPuzzle(currentUrl: string): boolean {
+    const url = new URL(currentUrl);
+    if (!url.searchParams.has(SHARE_PARAM)) return false;
+
+    try {
+      importCode(fromBase64Url(url.searchParams.get(SHARE_PARAM) ?? ""));
+      ctx.showSuccess("Shared puzzle loaded. Review it, then solve.");
+      showToast("Shared puzzle loaded");
+    } catch (error) {
+      showError(`Invalid shared puzzle link: ${getErrorMessage(error)}`);
+      showToast("Could not load shared puzzle", "warning");
+    }
+    return true;
+  }
+
   function onIOApply(): void {
     const mode = el("ioApplyBtn").dataset.mode || "import";
-    if (mode === "export") {
-      el("ioMsg").textContent = "Copy the code above.";
+    if (mode === "export" || mode === "share") {
+      el("ioMsg").textContent =
+        mode === "share" ? "Copy the URL above." : "Copy the code above.";
       return;
     }
     try {
@@ -411,7 +483,9 @@ export function createImportExport(ctx: ImportExportContext) {
     showIO,
     hideIO,
     onExport,
+    onShare,
     onImport,
     onIOApply,
+    importSharedPuzzle,
   };
 }

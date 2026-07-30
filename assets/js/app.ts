@@ -178,6 +178,7 @@ void createOfflineSupport({
 
 ctx.buildChecklist();
 ctx.updateSelectAllVisibility();
+ctx.importSharedPuzzle(window.location.href);
 void ctx.loadKnownLevels();
 
 el("resetBtn").addEventListener("click", resetAll);
@@ -236,6 +237,9 @@ el("sampleBtn").addEventListener("click", () => {
 
 el("exportBtn").addEventListener("click", () => {
   void ctx.onExport();
+});
+el("shareBtn").addEventListener("click", () => {
+  void ctx.onShare();
 });
 
 el("solveBtn").addEventListener("click", ctx.solve);

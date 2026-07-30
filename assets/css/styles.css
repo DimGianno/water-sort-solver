@@ -249,6 +249,12 @@ button:disabled {
 .secondary-btn {
   background: transparent;
 }
+.editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .text-btn {
   min-height: auto;
   padding: 2px 0;
@@ -1327,6 +1333,9 @@ footer p {
   }
   .card-heading .secondary-btn {
     padding-inline: 10px;
+  }
+  .editor-actions {
+    gap: 6px;
   }
   .section-intro {
     margin-left: 0;
