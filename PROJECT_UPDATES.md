@@ -15,6 +15,15 @@ Chromaflow is a browser application for importing, recreating, and solving fresh
 
 ## Latest Updates
 
+### 2026-07-30 - Reliable shared-link restoration after updates
+
+- **Type:** Fix
+- **Status:** Ready for review
+- **Summary:** Prevented an older installed application shell from silently ignoring newly shared puzzle URLs.
+- **User impact:** After this release reaches a browser, opening a shared puzzle while online checks for the current Chromaflow interface, while offline reloads continue using the cached application. A browser still controlled by a pre-fix worker requires a one-time full close and hard refresh or site-data clear.
+- **Technical impact:** Changed generated service-worker navigations from cache-first to network-first with an application-shell fallback, preserved cache-first immutable assets and the existing non-disruptive update lifecycle, and added focused generation plus online/offline navigation coverage.
+- **Related area:** Puzzle sharing, offline reliability, and application updates
+
 ### 2026-07-30 - Shareable puzzle URLs
 
 - **Type:** Capability

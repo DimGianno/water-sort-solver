@@ -47,7 +47,9 @@ For local end-to-end use, copy `.env.example` to the ignored `.env.local` file, 
 
 ## Use offline
 
-Open the production application once while connected and wait for the **Ready offline** indicator. Chromaflow then saves the page, application code, styles, and solver worker on that device. You can reload the page, build a puzzle, and run the solver without an internet connection. Browsers that support web app installation can also install Chromaflow from their application menu.
+Open the production application once while connected and wait for the **Ready offline** indicator. Chromaflow then saves the page, application code, styles, and solver worker on that device. Online page loads check for the current application shell before using the cached copy, so newly shared puzzle URLs are not handled by an outdated interface. When the network is unavailable, navigation falls back to the saved shell and remains fully usable. Browsers that support web app installation can also install Chromaflow from their application menu.
+
+Browsers that cached Chromaflow before network-first updates were introduced may need a one-time refresh: close every Chromaflow tab, reopen the site, and perform a hard refresh. If the older interface remains, clear Chromaflow's site data and open the shared link again.
 
 Offline support requires HTTPS in production (or `localhost` during development). If the optional Google fonts are unavailable, the interface uses its built-in system-font fallbacks without affecting puzzle entry or solving.
 
